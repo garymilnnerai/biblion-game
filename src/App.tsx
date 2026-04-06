@@ -687,7 +687,7 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
         <div style={{fontSize:11,color:"#888"}}>Puntos si aciertas: <b style={{color:isChallenge?"#FF6666":"#d4b060"}}>{pts} {isChallenge?"casillas":"pts"}</b></div>
       </div>
       {hr<question.hints.length&&<button style={{...S.hintBtn,marginBottom:12}} onClick={onHint}>💡 Pista {hr+1} de {question.hints.length}</button>}
-      <p style={{color:"#555",fontSize:11,marginBottom:6,letterSpacing:1,fontFamily:"'Cinzel',Georgia,serif"}}>¿QUIÉN RESPONDE PRIMERO?</p>
+      <p style={{color:"#555",fontSize:11,marginBottom:6,letterSpacing:1,fontFamily:"'Cinzel',Georgia,serif"}}>{players.length===1?"¿Sabés la respuesta?":"¿QUIÉN RESPONDE PRIMERO?"}</p>
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:8,width:"100%",maxWidth:440}}>
         {players.map((p:any)=>{
           const used=buzzed.includes(p.name);
@@ -697,13 +697,13 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
               style={{border:isMe?"2px solid rgba(255,255,255,.4)":"none",borderRadius:12,padding:"13px 8px",cursor:(used||!isMe)?"not-allowed":"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:used?"rgba(255,255,255,.04)":p.color,opacity:used?.3:isMe?1:.6,boxShadow:"0 3px 10px rgba(0,0,0,.4)",fontFamily:"inherit",position:"relative"}}>
               {p.position>=61&&!used&&<div style={{position:"absolute",top:-3,right:-3,width:8,height:8,borderRadius:"50%",background:"#FFD700"}}/>}
               <span style={{fontSize:20}}>{AVATARS[p.avatar]?.emoji||"?"}</span>
-              <b style={{fontSize:12,color:"#fff"}}>{p.name}{isMe?" (Tú)":""}</b>
+              <b style={{fontSize:12,color:"#fff"}}>{players.length===1?"¡RESPONDER!":p.name}</b>
               <small style={{color:"rgba(255,255,255,.75)",fontSize:10}}>{p.score}pts · C{p.position}</small>
             </button>
           );
         })}
       </div>
-      <p style={{color:"#444",fontSize:10,marginTop:10}}>Solo podés tocar tu propio botón</p>
+      {players.length>1&&<p style={{color:"#444",fontSize:10,marginTop:10}}>Solo podés tocar tu propio botón</p>}
     </div>
   );
 }
@@ -826,20 +826,28 @@ export default function App() {
   const [gameState,setGameState]=useState<any>(null);
   const [showBoard,setShowBoard]=useState(false);
   const [popupPlayer,setPopupPlayer]=useState<any>(null);
+  // Solo mode local state
+  const [soloPlayers,setSoloPlayers]=useState<any[]>([]);
+  const [soloQuestions,setSoloQuestions]=useState<any[]>([]);
+  const [soloQIdx,setSoloQIdx]=useState(0);
+  const [soloHr,setSoloHr]=useState(0);
+  const [soloBuzzed,setSoloBuzzed]=useState<string[]>([]);
+  const [soloResult,setSoloResult]=useState<any>(null);
   const roomRef = useRef<any>(null);
   const prevPositions = useRef<Record<string,number>>({});
   const audio = useAudio();
 
-  // Derived state from Firebase
-  const players: any[] = gameState?.players ? Object.values(gameState.players) : [];
-  const questions: any[] = gameState?.questions || [];
-  const qIdx: number = gameState?.qIdx || 0;
-  const hr: number = gameState?.hr || 0;
-  const buzzed: string[] = gameState?.buzzed || [];
-  const buzzer: string|null = gameState?.buzzer || null;
-  const result: any = gameState?.result || null;
+  const isSolo = roomCode === "__solo__";
+
+  // Derived state — solo or Firebase
+  const players: any[] = isSolo ? soloPlayers : (gameState?.players ? Object.values(gameState.players) : []);
+  const questions: any[] = isSolo ? soloQuestions : (gameState?.questions || []);
+  const qIdx: number = isSolo ? soloQIdx : (gameState?.qIdx || 0);
+  const hr: number = isSolo ? soloHr : (gameState?.hr || 0);
+  const buzzed: string[] = isSolo ? soloBuzzed : (gameState?.buzzed || []);
+  const buzzer: string|null = isSolo ? (soloBuzzed.length===0 ? null : null) : (gameState?.buzzer || null);
+  const result: any = isSolo ? soloResult : (gameState?.result || null);
   const cQ = questions[qIdx];
-  const myPlayer = players.find(p=>p.name===myName);
 
   // Subscribe to room
   useEffect(()=>{
@@ -888,7 +896,10 @@ export default function App() {
     if(roomCode === "__solo__") {
       const soloPlayer = { name, avatar, score:0, position:1, color:PLAYER_COLORS[0] };
       const qs = shuffle(DB);
-      setGameState({ screen:"game", qIdx:0, hr:0, buzzed:[], buzzer:null, result:null, questions:qs, players:{ [name]: soloPlayer } });
+      setSoloPlayers([soloPlayer]);
+      setSoloQuestions(qs);
+      setSoloQIdx(0); setSoloHr(0); setSoloBuzzed([]); setSoloResult(null);
+      prevPositions.current = { [name]: 1 };
       audio.startTickTock();
       setScreen("narrative");
       return;
@@ -933,6 +944,7 @@ export default function App() {
 
   // After narrative
   const handleNarrativeDone = async () => {
+    if(isSolo){ setScreen("game"); return; }
     await update(ref(db,`rooms/${roomCode}`),{ screen:"game" });
   };
 
@@ -941,39 +953,51 @@ export default function App() {
     if(name==="__timeout__"){
       const remaining=players.filter(p=>!buzzed.includes(p.name));
       if(remaining.length<=1){ nextQuestion(); return; }
+      if(isSolo){ setSoloBuzzed(b=>[...b,remaining[0].name]); return; }
       await update(ref(db,`rooms/${roomCode}`),{ buzzed:[...buzzed,remaining[0].name] });
       return;
     }
+    if(isSolo){ setScreen("answer"); return; }
     await update(ref(db,`rooms/${roomCode}`),{ buzzer:name, screen:"answer" });
   };
 
   // Answer
   const handleAnswer = async (opt:string) => {
-    if(!buzzer||!cQ) return;
+    if(!cQ) return;
+    const activeName = isSolo ? myName : buzzer;
+    if(!activeName) return;
     const ok=norm(opt)===norm(cQ.a);
     const isChallenge=cQ.cat==="Desafío";
-    const steps=ok?(isChallenge?CHALLENGE.correct:ptsFor(hr)):(isChallenge?CHALLENGE.wrong:POINTS.wrong);
-    const ptsChange=ok?Math.abs(steps):-Math.abs(steps);
-    const ptsLabel=`${ok?"+":""}${ptsChange} ${isChallenge?"casillas":"pts"}`;
+    const steps=ok?(isChallenge?CHALLENGE.correct:1):(isChallenge?-1:0);
+    const ptsChange=ok?(isChallenge?CHALLENGE.correct:ptsFor(hr)):(isChallenge?CHALLENGE.wrong:POINTS.wrong);
+    const ptsLabel=`${ok?"+":""}${ptsChange} pts`;
 
-    const buzzerPlayer=players.find(p=>p.name===buzzer);
-    if(!buzzerPlayer) return;
+    const activePlayer=players.find(p=>p.name===activeName)||players[0];
+    if(!activePlayer) return;
 
-    const newScore=Math.max(0,buzzerPlayer.score+(ok?Math.abs(steps):0));
-    const newPos=Math.min(TOTAL,Math.max(1,buzzerPlayer.position+(ok?Math.abs(steps):-Math.abs(steps))));
+    const newScore=Math.max(0,activePlayer.score+(ok?ptsFor(hr):0));
+    const newPos=Math.min(TOTAL,Math.max(1,activePlayer.position+steps));
 
     if(ok) audio.playCorrect(); else audio.playWrong();
     audio.playNearEnd(newPos);
 
+    const resultData = { correct:ok, player:activeName, playerAvatar:activePlayer.avatar, playerColor:activePlayer.color, pts:ptsChange, ptsLabel, correctAnswer:cQ.a, newPos, isChallenge };
+
+    if(isSolo){
+      setSoloPlayers(prev=>prev.map(p=>p.name===activeName?{...p,score:newScore,position:newPos}:p));
+      setSoloResult(resultData);
+      setScreen("result");
+      if(ok&&newPos>=TOTAL){ setTimeout(()=>{ audio.playVictory(); setScreen("win"); },1500); }
+      return;
+    }
+
     const updates: any = {
-      [`players/${buzzer}/score`]: newScore,
-      [`players/${buzzer}/position`]: newPos,
-      result:{ correct:ok, player:buzzer, playerAvatar:buzzerPlayer.avatar, playerColor:buzzerPlayer.color, pts:ptsChange, ptsLabel, correctAnswer:cQ.a, newPos, isChallenge },
+      [`players/${activeName}/score`]: newScore,
+      [`players/${activeName}/position`]: newPos,
+      result: resultData,
       screen:"result"
     };
-
     await update(ref(db,`rooms/${roomCode}`),updates);
-
     if(ok&&newPos>=TOTAL){
       setTimeout(async()=>{ audio.playVictory(); await update(ref(db,`rooms/${roomCode}`),{screen:"win"}); },1500);
     }
@@ -981,19 +1005,25 @@ export default function App() {
 
   const nextQuestion = async () => {
     const ni=qIdx+1;
+    if(isSolo){
+      if(ni>=questions.length){ setScreen("win"); return; }
+      setSoloQIdx(ni); setSoloHr(0); setSoloBuzzed([]); setSoloResult(null);
+      setScreen("game"); return;
+    }
     if(ni>=questions.length){ await update(ref(db,`rooms/${roomCode}`),{screen:"win"}); return; }
     await update(ref(db,`rooms/${roomCode}`),{ qIdx:ni, hr:0, buzzed:[], buzzer:null, result:null, screen:"game" });
   };
 
   const addHint = async () => {
     if(!cQ||hr>=cQ.hints.length) return;
+    if(isSolo){ setSoloHr(h=>h+1); return; }
     await update(ref(db,`rooms/${roomCode}`),{ hr:hr+1 });
   };
 
   const handleRestart = async () => {
     audio.stopTickTock();
-    // Clear room and go back to intro
     setRoomCode(""); setMyName(""); setIsHost(false); setGameState(null);
+    setSoloPlayers([]); setSoloQuestions([]); setSoloQIdx(0); setSoloHr(0); setSoloBuzzed([]); setSoloResult(null);
     setScreen("intro");
   };
 
@@ -1042,23 +1072,26 @@ export default function App() {
       {screen==="game"&&cQ&&!showBoard&&(
         <QuestionScreen question={cQ} players={players} hr={hr} onHint={addHint}
           onBuzz={handleBuzz} buzzed={buzzed} qIdx={qIdx} total={questions.length}
-          audio={audio} myName={myName} isHost={isHost}/>
+          audio={audio} myName={myName} isHost={isHost||isSolo}/>
       )}
-      {screen==="answer"&&cQ&&!showBoard&&buzzer&&myName===buzzer&&(
-        <AnswerScreen question={cQ} player={buzzer} playerObj={buzzerObj} hr={hr} onAnswer={handleAnswer}/>
+      {screen==="answer"&&cQ&&!showBoard&&(isSolo||(buzzer&&myName===buzzer))&&(
+        <AnswerScreen question={cQ} player={isSolo?myName:buzzer}
+          playerObj={isSolo?players[0]:(buzzer?players.find(p=>p.name===buzzer)||{avatar:0,color:"#888"}:{avatar:0,color:"#888"})}
+          hr={hr} onAnswer={handleAnswer}/>
       )}
-      {screen==="answer"&&cQ&&!showBoard&&buzzer&&myName!==buzzer&&(
+      {screen==="answer"&&cQ&&!showBoard&&!isSolo&&buzzer&&myName!==buzzer&&(
         <div style={{...S.wrap,justifyContent:"center",textAlign:"center"}}>
           <style>{FONTS}</style>
           <div style={{fontSize:48,marginBottom:16,animation:"spin 2s linear infinite"}}>⏳</div>
           <p style={{color:"#c8a850",fontFamily:"'Cinzel',Georgia,serif",fontSize:16,letterSpacing:2}}>{buzzer} está respondiendo...</p>
         </div>
       )}
-      {screen==="result"&&result&&!showBoard&&resultPlayerObj&&(
-        <ResultScreen correct={result.correct} player={result.player} playerObj={resultPlayerObj}
+      {screen==="result"&&result&&!showBoard&&(
+        <ResultScreen correct={result.correct} player={result.player}
+          playerObj={{avatar:result.playerAvatar,color:result.playerColor,name:result.player,position:result.newPos}}
           pts={result.pts} ptsLabel={result.ptsLabel} correctAnswer={result.correctAnswer}
           newPos={result.newPos} isChallenge={result.isChallenge}
-          onNext={isHost?nextQuestion:undefined} isHost={isHost}/>
+          onNext={nextQuestion} isHost={true}/>
       )}
       {screen==="win"&&winner&&<WinScreen winner={winner} players={players} onRestart={handleRestart}/>}
     </div>
