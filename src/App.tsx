@@ -823,12 +823,14 @@ export default function App() {
   const [roomCode,setRoomCode]=useState("");
   const [myName,setMyName]=useState("");
   const [isHost,setIsHost]=useState(false);
+  const [isSoloMode,setIsSoloMode]=useState(false);
   const [gameState,setGameState]=useState<any>(null);
   const [showBoard,setShowBoard]=useState(false);
   const [popupPlayer,setPopupPlayer]=useState<any>(null);
   // Solo mode local state
   const [soloPlayers,setSoloPlayers]=useState<any[]>([]);
   const [soloQuestions,setSoloQuestions]=useState<any[]>([]);
+  const soloQuestionsRef = useRef<any[]>([]);
   const [soloQIdx,setSoloQIdx]=useState(0);
   const [soloHr,setSoloHr]=useState(0);
   const [soloBuzzed,setSoloBuzzed]=useState<string[]>([]);
@@ -837,11 +839,11 @@ export default function App() {
   const prevPositions = useRef<Record<string,number>>({});
   const audio = useAudio();
 
-  const isSolo = roomCode === "__solo__";
+  const isSolo = isSoloMode;
 
   // Derived state — solo or Firebase
   const players: any[] = isSolo ? soloPlayers : (gameState?.players ? Object.values(gameState.players) : []);
-  const questions: any[] = isSolo ? soloQuestions : (gameState?.questions || []);
+  const questions: any[] = isSolo ? (soloQuestions.length > 0 ? soloQuestions : soloQuestionsRef.current) : (gameState?.questions || []);
   const qIdx: number = isSolo ? soloQIdx : (gameState?.qIdx || 0);
   const hr: number = isSolo ? soloHr : (gameState?.hr || 0);
   const buzzed: string[] = isSolo ? soloBuzzed : (gameState?.buzzed || []);
@@ -893,9 +895,10 @@ export default function App() {
   const handleRegister = async (name:string, avatar:number) => {
     setMyName(name);
     // SOLO MODE — sin Firebase
-    if(roomCode === "__solo__") {
+    if(isSoloMode) {
       const soloPlayer = { name, avatar, score:0, position:1, color:PLAYER_COLORS[0] };
       const qs = shuffle(DB);
+      soloQuestionsRef.current = qs;
       setSoloPlayers([soloPlayer]);
       setSoloQuestions(qs);
       setSoloQIdx(0); setSoloHr(0); setSoloBuzzed([]); setSoloResult(null);
@@ -1006,7 +1009,8 @@ export default function App() {
   const nextQuestion = async () => {
     const ni=qIdx+1;
     if(isSolo){
-      if(ni>=questions.length){ setScreen("win"); return; }
+      const totalQ = soloQuestionsRef.current.length || soloQuestions.length;
+      if(ni>=totalQ){ setScreen("win"); return; }
       setSoloQIdx(ni); setSoloHr(0); setSoloBuzzed([]); setSoloResult(null);
       setScreen("game"); return;
     }
@@ -1023,6 +1027,8 @@ export default function App() {
   const handleRestart = async () => {
     audio.stopTickTock();
     setRoomCode(""); setMyName(""); setIsHost(false); setGameState(null);
+    setIsSoloMode(false);
+    soloQuestionsRef.current = [];
     setSoloPlayers([]); setSoloQuestions([]); setSoloQIdx(0); setSoloHr(0); setSoloBuzzed([]); setSoloResult(null);
     setScreen("intro");
   };
@@ -1064,7 +1070,7 @@ export default function App() {
 
       {popupPlayer&&<PlayerPopup player={popupPlayer} onClose={()=>setPopupPlayer(null)}/>}
 
-      {screen==="intro"&&<IntroScreen onStart={()=>setScreen("lobby")} onSolo={()=>{setIsHost(true);setRoomCode("__solo__");setScreen("register");}}/>}
+      {screen==="intro"&&<IntroScreen onStart={()=>setScreen("lobby")} onSolo={()=>{setIsSoloMode(true);setIsHost(false);setScreen("register");}}/>}
       {screen==="lobby"&&<LobbyScreen onHost={handleHost} onJoin={handleJoin} onBack={()=>setScreen("intro")}/>}
       {screen==="register"&&<RegisterScreen usedAvatars={usedAvatars} usedNames={usedNames} onDone={handleRegister} audio={audio}/>}
       {screen==="waiting"&&<WaitingRoom roomCode={roomCode} players={players} isHost={isHost} myName={myName} onStart={handleStart} onLeave={handleRestart}/>}
