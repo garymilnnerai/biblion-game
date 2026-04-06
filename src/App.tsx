@@ -143,8 +143,7 @@ const DB = [
 //  CONFIG
 // ═══════════════════════════════════════════════════════════════
 const POINTS    = { direct:5, h1:3, h2:2, h3:1, wrong:-2 };
-const CHALLENGE = { correct:10, wrong:-5 };
-const STEPS     = { correct:1, wrong:0, challengeCorrect:2, challengeWrong:-1 };
+const CHALLENGE = { correct:6, wrong:-3 };
 const TOTAL     = 66;
 const TIMER_SEC = 15;
 const CHALLENGE_SQUARES = [13, 26, 39, 52, 60];
@@ -282,7 +281,7 @@ function useAudio() {
   }, [playTrumpet, playDrum, playTambourine, playHarp]);
 
   const playAvatarSelect = useCallback(() => {
-    [523,659,784,1047].forEach((n,i)=>tone(n,0.55,0.22,"sine",i*0.07));
+    [523,659,784,1047].forEach((n,i)=>tone(n,0.55,"sine" as any,i*0.07));
     tone(2093,0.9,0.07,"sine",0.2);
   }, [tone]);
 
@@ -419,7 +418,7 @@ function PlayerPopup({ player, onClose }: any) {
 // ═══════════════════════════════════════════════════════════════
 //  INTRO SCREEN
 // ═══════════════════════════════════════════════════════════════
-function IntroScreen({ onStart }: { onStart:()=>void }) {
+function IntroScreen({ onStart, onSolo }: { onStart:()=>void; onSolo:()=>void }) {
   const [p,setP]=useState(0);
   useEffect(()=>{ const t=[150,900,1700,2500].map((ms,i)=>setTimeout(()=>setP(i+1),ms)); return ()=>t.forEach(clearTimeout); },[]);
   const vis=(min:number)=>({opacity:p>=min?1:0,transform:p>=min?"translateY(0)":"translateY(24px)",transition:"opacity 1s ease,transform 1s cubic-bezier(.22,1,.36,1)"});
@@ -461,9 +460,10 @@ function IntroScreen({ onStart }: { onStart:()=>void }) {
           <div style={{flex:1,height:1,background:"linear-gradient(90deg,transparent,rgba(195,160,70,.5),transparent)"}}/>
         </div>
         <div style={{opacity:p>=4?1:0,transform:p>=4?"translateY(0)":"translateY(16px)",transition:"opacity .6s ease,transform .6s ease",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
-          <button onClick={onStart} style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:14,fontWeight:700,letterSpacing:4,color:"#c8920e",background:"transparent",border:"1px solid rgba(200,150,50,.4)",borderRadius:2,padding:"14px 48px",cursor:"pointer",textTransform:"uppercase",animation:"btnGlow 3s ease-in-out infinite",outline:"none"}}>⚡ COMENZAR</button>
-          <button onClick={share} style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:11,letterSpacing:2,color:"rgba(200,165,80,.6)",background:"transparent",border:"1px solid rgba(200,150,50,.2)",borderRadius:2,padding:"8px 24px",cursor:"pointer",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,outline:"none"}}>🔗 Compartir enlace</button>
-          <p style={{margin:0,fontSize:10,color:"rgba(155,125,65,.38)",letterSpacing:1,textTransform:"uppercase"}}>🎺 🥁 🪘 🎵 · Multijugador en red</p>
+          <button onClick={onSolo} style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:14,fontWeight:700,letterSpacing:4,color:"#c8920e",background:"transparent",border:"1px solid rgba(200,150,50,.4)",borderRadius:2,padding:"14px 48px",cursor:"pointer",textTransform:"uppercase",animation:"btnGlow 3s ease-in-out infinite",outline:"none"}}>⚡ COMENZAR</button>
+          <button onClick={onStart} style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:11,letterSpacing:3,color:"rgba(200,165,80,.7)",background:"transparent",border:"1px solid rgba(200,150,50,.25)",borderRadius:2,padding:"10px 32px",cursor:"pointer",textTransform:"uppercase",outline:"none"}}>🌐 Multijugador en red</button>
+          <button onClick={share} style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:11,letterSpacing:2,color:"rgba(200,165,80,.5)",background:"transparent",border:"1px solid rgba(200,150,50,.15)",borderRadius:2,padding:"8px 24px",cursor:"pointer",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,outline:"none"}}>🔗 Compartir enlace</button>
+          <p style={{margin:0,fontSize:10,color:"rgba(155,125,65,.38)",letterSpacing:1,textTransform:"uppercase"}}>🎺 🥁 🪘 🎵 · Individual o multijugador</p>
         </div>
       </div>
     </div>
@@ -473,7 +473,7 @@ function IntroScreen({ onStart }: { onStart:()=>void }) {
 // ═══════════════════════════════════════════════════════════════
 //  LOBBY SCREEN — crear o unirse a sala
 // ═══════════════════════════════════════════════════════════════
-function LobbyScreen({ onHost, onJoin, onBack, onSolo }: { onHost:()=>void; onJoin:(code:string)=>void; onBack:()=>void; onSolo:()=>void }) {
+function LobbyScreen({ onHost, onJoin, onBack }: { onHost:()=>void; onJoin:(code:string)=>void; onBack:()=>void }) {
   const [joinCode,setJoinCode]=useState("");
   const [err,setErr]=useState("");
   const handleJoin=()=>{
@@ -485,19 +485,10 @@ function LobbyScreen({ onHost, onJoin, onBack, onSolo }: { onHost:()=>void; onJo
     <div style={S.wrap}>
       <style>{FONTS}</style>
       <div style={{display:"flex",alignItems:"center",gap:12,width:"100%",maxWidth:340,marginBottom:18}}>
-        <button onClick={onBack} style={{background:"rgba(200,160,80,.07)",border:"1px solid rgba(200,160,80,.18)",borderRadius:10,padding:"8px 14px",color:"#c8a850",cursor:"pointer",fontSize:13,fontFamily:"inherit",display:"flex",alignItems:"center",gap:6}}>← Volver</button>
+        <button onClick={onBack} style={{background:"rgba(200,160,80,.07)",border:"1px solid rgba(200,160,80,.18)",borderRadius:10,padding:"8px 14px",color:"#c8a850",cursor:"pointer",fontSize:13,fontFamily:"inherit"}}>← Volver</button>
         <h2 style={{...S.h2,margin:0,flex:1}}>🌐 Multijugador</h2>
       </div>
       <div style={{display:"flex",flexDirection:"column",gap:14,width:"100%",maxWidth:340}}>
-        {/* Solo option */}
-        <button style={{...S.modeBtn,gap:12,padding:"14px 18px"}} onClick={onSolo}>
-          <span style={{fontSize:28}}>🧍</span>
-          <div style={{flex:1,textAlign:"left"}}>
-            <div style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:14,color:"#c8a850",letterSpacing:1}}>Individual</div>
-            <div style={{fontSize:11,color:"#888",marginTop:2}}>Jugar solo en este dispositivo</div>
-          </div>
-          <span style={{color:"#c8920e",fontSize:18}}>›</span>
-        </button>
         <button style={{...S.modeBtn,flexDirection:"column",alignItems:"center",gap:8,padding:"20px"}} onClick={onHost}>
           <span style={{fontSize:36}}>🏠</span>
           <div style={{textAlign:"center"}}>
@@ -683,7 +674,7 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
         <span style={{position:"absolute",right:4,top:-1,fontSize:9,color:"#888"}}>{timer}s</span>
       </div>
       <div style={{background:isChallenge?"rgba(255,68,68,0.08)":"rgba(200,160,80,.06)",border:`1px solid ${isChallenge?"rgba(255,68,68,0.3)":"rgba(200,160,80,.18)"}`,borderRadius:14,padding:"16px",marginBottom:12,width:"100%",maxWidth:440}}>
-        {isChallenge&&<div style={{fontSize:11,color:"#FF6666",letterSpacing:2,marginBottom:8,fontWeight:"bold"}}>⚡ ¡DESAFÍO! Correcto +{CHALLENGE.correct}pts +{STEPS.challengeCorrect} casillas · Error {CHALLENGE.wrong}pts {STEPS.challengeWrong} casilla</div>}
+        {isChallenge&&<div style={{fontSize:11,color:"#FF6666",letterSpacing:2,marginBottom:8,fontWeight:"bold"}}>⚡ ¡DESAFÍO! Correcto +{CHALLENGE.correct} casillas · Error {CHALLENGE.wrong} casillas</div>}
         <p style={{fontSize:18,fontWeight:"bold",color:"#e8d8b0",lineHeight:1.4,margin:"0 0 10px",fontFamily:"'Cinzel',Georgia,serif"}}>{question.q.replace("⚡ DESAFÍO: ","")}</p>
         {hr>0&&<div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:8}}>
           {question.hints.slice(0,hr).map((h:string,i:number)=>(
@@ -693,7 +684,7 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
             </div>
           ))}
         </div>}
-        <div style={{fontSize:11,color:"#888"}}>Si acertás: <b style={{color:isChallenge?"#FF6666":"#d4b060"}}>+{isChallenge?CHALLENGE.correct:pts} pts · +{isChallenge?STEPS.challengeCorrect:STEPS.correct} casilla</b></div>
+        <div style={{fontSize:11,color:"#888"}}>Puntos si aciertas: <b style={{color:isChallenge?"#FF6666":"#d4b060"}}>{pts} {isChallenge?"casillas":"pts"}</b></div>
       </div>
       {hr<question.hints.length&&<button style={{...S.hintBtn,marginBottom:12}} onClick={onHint}>💡 Pista {hr+1} de {question.hints.length}</button>}
       <p style={{color:"#555",fontSize:11,marginBottom:6,letterSpacing:1,fontFamily:"'Cinzel',Georgia,serif"}}>¿QUIÉN RESPONDE PRIMERO?</p>
@@ -735,7 +726,7 @@ function AnswerScreen({ question, player, playerObj, hr, onAnswer }: any) {
         <span style={{fontSize:20}}>{AVATARS[playerObj.avatar]?.emoji||"?"}</span>
         <span style={{fontFamily:"'Cinzel',Georgia,serif"}}>{player} — ¡Respondé!</span>
       </div>
-      <div style={{fontSize:11,color:isChallenge?"#FF8888":"#888",marginBottom:12}}>{isChallenge?`⚡ Correcto +${CHALLENGE.correct}pts +${STEPS.challengeCorrect} casillas · Error ${CHALLENGE.wrong}pts ${STEPS.challengeWrong} casilla`:`✅ Acierto +${pts}pts +1 casilla · ❌ Error ${POINTS.wrong}pts sin retroceder`}</div>
+      <div style={{fontSize:11,color:isChallenge?"#FF8888":"#888",marginBottom:12}}>{isChallenge?`⚡ +${CHALLENGE.correct} casillas si acertás`:`✅ Acierto +${pts}pts · ❌ Error ${POINTS.wrong}pts`}</div>
       <p style={{fontSize:17,fontWeight:"bold",textAlign:"center",marginBottom:12,maxWidth:440,lineHeight:1.5,color:"#e8d8b0",fontFamily:"'Cinzel',Georgia,serif"}}>{question.q.replace("⚡ DESAFÍO: ","")}</p>
       {hr>0&&<div style={{background:"rgba(210,175,55,.07)",border:"1px solid rgba(210,175,55,.18)",borderRadius:10,padding:"9px 12px",marginBottom:12,width:"100%",maxWidth:440}}>
         {question.hints.slice(0,hr).map((h:string,i:number)=><div key={i} style={{fontSize:12,color:"#c8a850",marginBottom:4}}>💡 {h}</div>)}
@@ -840,8 +831,7 @@ export default function App() {
   const audio = useAudio();
 
   // Derived state from Firebase
-  const isSolo = roomCode === "__solo__";
-  const players: any[] = isSolo ? (gameState?.players||[]) : (gameState?.players ? Object.values(gameState.players) : []);
+  const players: any[] = gameState?.players ? Object.values(gameState.players) : [];
   const questions: any[] = gameState?.questions || [];
   const qIdx: number = gameState?.qIdx || 0;
   const hr: number = gameState?.hr || 0;
@@ -894,21 +884,16 @@ export default function App() {
   // Register name + avatar
   const handleRegister = async (name:string, avatar:number) => {
     setMyName(name);
-    let code = roomCode;
-
-    // SOLO MODE — no Firebase needed
-    if(code === "__solo__") {
-      const qs = shuffle(DB);
+    // SOLO MODE — sin Firebase
+    if(roomCode === "__solo__") {
       const soloPlayer = { name, avatar, score:0, position:1, color:PLAYER_COLORS[0] };
-      setPlayers([soloPlayer]);
-      setQuestions(qs);
-      setQIdx(0); setHr(0); setBuzzed([]); setBuzzer(null); setResult(null);
-      prevPositions.current = { [name]: 1 };
+      const qs = shuffle(DB);
+      setGameState({ screen:"game", qIdx:0, hr:0, buzzed:[], buzzer:null, result:null, questions:qs, players:{ [name]: soloPlayer } });
       audio.startTickTock();
       setScreen("narrative");
       return;
     }
-
+    let code = roomCode;
     if(isHost){
       code = genRoomCode();
       let attempts=0;
@@ -948,7 +933,6 @@ export default function App() {
 
   // After narrative
   const handleNarrativeDone = async () => {
-    if(isSolo){ setScreen("game"); return; }
     await update(ref(db,`rooms/${roomCode}`),{ screen:"game" });
   };
 
@@ -957,50 +941,39 @@ export default function App() {
     if(name==="__timeout__"){
       const remaining=players.filter(p=>!buzzed.includes(p.name));
       if(remaining.length<=1){ nextQuestion(); return; }
-      if(isSolo){ setBuzzed(b=>[...b,remaining[0].name]); return; }
       await update(ref(db,`rooms/${roomCode}`),{ buzzed:[...buzzed,remaining[0].name] });
       return;
     }
-    if(isSolo){ setBuzzer(name); setScreen("answer"); return; }
     await update(ref(db,`rooms/${roomCode}`),{ buzzer:name, screen:"answer" });
   };
 
   // Answer
   const handleAnswer = async (opt:string) => {
-    const activeBuzzer = isSolo ? myName : buzzer;
-    if(!activeBuzzer||!cQ) return;
+    if(!buzzer||!cQ) return;
     const ok=norm(opt)===norm(cQ.a);
     const isChallenge=cQ.cat==="Desafío";
-    const steps=ok?(isChallenge?STEPS.challengeCorrect:STEPS.correct):(isChallenge?STEPS.challengeWrong:STEPS.wrong);
-    const ptsChange=ok?(isChallenge?CHALLENGE.correct:ptsFor(hr)):(isChallenge?CHALLENGE.wrong:POINTS.wrong);
-    const ptsLabel=`${ok?"+":""}${ptsChange} pts · ${steps>0?"+"+steps:steps===0?"sin cambio":steps} casilla${Math.abs(steps)!==1?"s":""}`;
+    const steps=ok?(isChallenge?CHALLENGE.correct:ptsFor(hr)):(isChallenge?CHALLENGE.wrong:POINTS.wrong);
+    const ptsChange=ok?Math.abs(steps):-Math.abs(steps);
+    const ptsLabel=`${ok?"+":""}${ptsChange} ${isChallenge?"casillas":"pts"}`;
 
-    const buzzerPlayer=players.find(p=>p.name===activeBuzzer);
+    const buzzerPlayer=players.find(p=>p.name===buzzer);
     if(!buzzerPlayer) return;
 
-    const newScore=Math.max(0,buzzerPlayer.score+(ok?Math.abs(ptsChange):0));
-    const newPos=Math.min(TOTAL,Math.max(1,buzzerPlayer.position+steps));
+    const newScore=Math.max(0,buzzerPlayer.score+(ok?Math.abs(steps):0));
+    const newPos=Math.min(TOTAL,Math.max(1,buzzerPlayer.position+(ok?Math.abs(steps):-Math.abs(steps))));
 
     if(ok) audio.playCorrect(); else audio.playWrong();
     audio.playNearEnd(newPos);
 
-    const resultData = { correct:ok, player:activeBuzzer, playerAvatar:buzzerPlayer.avatar, playerColor:buzzerPlayer.color, pts:ptsChange, ptsLabel, correctAnswer:cQ.a, newPos, isChallenge };
-
-    if(isSolo){
-      setPlayers(prev => prev.map(p => p.name===activeBuzzer ? {...p, score:newScore, position:newPos} : p));
-      setResult(resultData);
-      setScreen("result");
-      if(ok&&newPos>=TOTAL){ setTimeout(()=>{ audio.playVictory(); setScreen("win"); },1500); }
-      return;
-    }
-
     const updates: any = {
-      [`players/${activeBuzzer}/score`]: newScore,
-      [`players/${activeBuzzer}/position`]: newPos,
-      result: resultData,
+      [`players/${buzzer}/score`]: newScore,
+      [`players/${buzzer}/position`]: newPos,
+      result:{ correct:ok, player:buzzer, playerAvatar:buzzerPlayer.avatar, playerColor:buzzerPlayer.color, pts:ptsChange, ptsLabel, correctAnswer:cQ.a, newPos, isChallenge },
       screen:"result"
     };
+
     await update(ref(db,`rooms/${roomCode}`),updates);
+
     if(ok&&newPos>=TOTAL){
       setTimeout(async()=>{ audio.playVictory(); await update(ref(db,`rooms/${roomCode}`),{screen:"win"}); },1500);
     }
@@ -1008,18 +981,12 @@ export default function App() {
 
   const nextQuestion = async () => {
     const ni=qIdx+1;
-    if(isSolo){
-      if(ni>=questions.length){ setScreen("win"); return; }
-      setQIdx(ni); setHr(0); setBuzzed([]); setBuzzer(null); setResult(null); setScreen("game");
-      return;
-    }
     if(ni>=questions.length){ await update(ref(db,`rooms/${roomCode}`),{screen:"win"}); return; }
     await update(ref(db,`rooms/${roomCode}`),{ qIdx:ni, hr:0, buzzed:[], buzzer:null, result:null, screen:"game" });
   };
 
   const addHint = async () => {
     if(!cQ||hr>=cQ.hints.length) return;
-    if(isSolo){ setHr(h=>h+1); return; }
     await update(ref(db,`rooms/${roomCode}`),{ hr:hr+1 });
   };
 
@@ -1067,8 +1034,8 @@ export default function App() {
 
       {popupPlayer&&<PlayerPopup player={popupPlayer} onClose={()=>setPopupPlayer(null)}/>}
 
-      {screen==="intro"&&<IntroScreen onStart={()=>setScreen("lobby")}/>}
-      {screen==="lobby"&&<LobbyScreen onHost={handleHost} onJoin={handleJoin} onBack={()=>setScreen("intro")} onSolo={()=>{setIsHost(true);setRoomCode("__solo__");setScreen("register");}}/>}
+      {screen==="intro"&&<IntroScreen onStart={()=>setScreen("lobby")} onSolo={()=>{setIsHost(true);setScreen("register");}}/>}
+      {screen==="lobby"&&<LobbyScreen onHost={handleHost} onJoin={handleJoin} onBack={()=>setScreen("intro")}/>}
       {screen==="register"&&<RegisterScreen usedAvatars={usedAvatars} usedNames={usedNames} onDone={handleRegister} audio={audio}/>}
       {screen==="waiting"&&<WaitingRoom roomCode={roomCode} players={players} isHost={isHost} myName={myName} onStart={handleStart} onLeave={handleRestart}/>}
       {screen==="narrative"&&<NarrativeScreen onDone={handleNarrativeDone}/>}
@@ -1077,21 +1044,21 @@ export default function App() {
           onBuzz={handleBuzz} buzzed={buzzed} qIdx={qIdx} total={questions.length}
           audio={audio} myName={myName} isHost={isHost}/>
       )}
-      {screen==="answer"&&cQ&&!showBoard&&(isSolo||buzzer)&&(isSolo||myName===buzzer)&&(
-        <AnswerScreen question={cQ} player={isSolo?myName:buzzer} playerObj={isSolo?players[0]:buzzerObj} hr={hr} onAnswer={handleAnswer}/>
+      {screen==="answer"&&cQ&&!showBoard&&buzzer&&myName===buzzer&&(
+        <AnswerScreen question={cQ} player={buzzer} playerObj={buzzerObj} hr={hr} onAnswer={handleAnswer}/>
       )}
-      {screen==="answer"&&cQ&&!showBoard&&!isSolo&&buzzer&&myName!==buzzer&&(
+      {screen==="answer"&&cQ&&!showBoard&&buzzer&&myName!==buzzer&&(
         <div style={{...S.wrap,justifyContent:"center",textAlign:"center"}}>
           <style>{FONTS}</style>
           <div style={{fontSize:48,marginBottom:16,animation:"spin 2s linear infinite"}}>⏳</div>
           <p style={{color:"#c8a850",fontFamily:"'Cinzel',Georgia,serif",fontSize:16,letterSpacing:2}}>{buzzer} está respondiendo...</p>
         </div>
       )}
-      {screen==="result"&&(result||isSolo)&&!showBoard&&(result||isSolo)&&(
-        <ResultScreen correct={result?.correct} player={result?.player||myName} playerObj={result?{avatar:result.playerAvatar,color:result.playerColor,name:result.player,position:result.newPos}:players[0]}
-          pts={result?.pts} ptsLabel={result?.ptsLabel} correctAnswer={result?.correctAnswer}
-          newPos={result?.newPos} isChallenge={result?.isChallenge}
-          onNext={nextQuestion} isHost={true}/>
+      {screen==="result"&&result&&!showBoard&&resultPlayerObj&&(
+        <ResultScreen correct={result.correct} player={result.player} playerObj={resultPlayerObj}
+          pts={result.pts} ptsLabel={result.ptsLabel} correctAnswer={result.correctAnswer}
+          newPos={result.newPos} isChallenge={result.isChallenge}
+          onNext={isHost?nextQuestion:undefined} isHost={isHost}/>
       )}
       {screen==="win"&&winner&&<WinScreen winner={winner} players={players} onRestart={handleRestart}/>}
     </div>
