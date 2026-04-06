@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a0f02"/>
+      <stop offset="50%" style="stop-color:#17120a"/>
+      <stop offset="100%" style="stop-color:#0d0700"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fffbe8"/>
+      <stop offset="25%" style="stop-color:#f5d060"/>
+      <stop offset="60%" style="stop-color:#c8920e"/>
+      <stop offset="100%" style="stop-color:#7a4e08"/>
+    </linearGradient>
+    <linearGradient id="goldh" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:transparent"/>
+      <stop offset="30%" style="stop-color:#c8920e"/>
+      <stop offset="70%" style="stop-color:#c8920e"/>
+      <stop offset="100%" style="stop-color:transparent"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Subtle radial glow center -->
+  <ellipse cx="600" cy="315" rx="500" ry="280" fill="#2a1f10" opacity="0.5"/>
+
+  <!-- Border -->
+  <rect x="20" y="20" width="1160" height="590" rx="24" fill="none" stroke="#c8920e" stroke-width="3" opacity="0.5"/>
+  <rect x="34" y="34" width="1132" height="562" rx="18" fill="none" stroke="#c8920e" stroke-width="1" opacity="0.25"/>
+
+  <!-- Corner diamonds -->
+  <polygon points="60,60 70,72 60,84 50,72" fill="#c8920e" opacity="0.7"/>
+  <polygon points="1140,60 1150,72 1140,84 1130,72" fill="#c8920e" opacity="0.7"/>
+  <polygon points="60,570 70,558 60,546 50,558" fill="#c8920e" opacity="0.7"/>
+  <polygon points="1140,570 1150,558 1140,546 1130,558" fill="#c8920e" opacity="0.7"/>
+
+  <!-- Top ornament line -->
+  <rect x="100" y="148" width="1000" height="2" fill="url(#goldh)" opacity="0.6"/>
+  <!-- Bottom ornament line -->
+  <rect x="100" y="480" width="1000" height="2" fill="url(#goldh)" opacity="0.6"/>
+
+  <!-- Top small diamonds -->
+  <polygon points="600,128 610,148 600,168 590,148" fill="#c8920e" opacity="0.5"/>
+
+  <!-- BIBLION main title -->
+  <text
+    x="600"
+    y="360"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="180"
+    font-weight="bold"
+    text-anchor="middle"
+    letter-spacing="16"
+    fill="url(#gold)"
+  >BIBLION</text>
+
+  <!-- Subtitle -->
+  <text
+    x="600"
+    y="430"
+    font-family="Georgia, serif"
+    font-size="32"
+    text-anchor="middle"
+    letter-spacing="12"
+    fill="#c8920e"
+    opacity="0.8"
+  >EL CAMINO DE LA SABIDURÍA</text>
+
+  <!-- Stats row -->
+  <text x="340" y="510" font-family="Georgia, serif" font-size="22" text-anchor="middle" fill="#c8920e" opacity="0.55" letter-spacing="2">📖 100+ PREGUNTAS</text>
+  <text x="600" y="510" font-family="Georgia, serif" font-size="22" text-anchor="middle" fill="#c8920e" opacity="0.55" letter-spacing="2">🏁 66 CASILLAS</text>
+  <text x="860" y="510" font-family="Georgia, serif" font-size="22" text-anchor="middle" fill="#c8920e" opacity="0.55" letter-spacing="2">👥 MULTIJUGADOR</text>
+
+  <!-- Bottom diamond -->
+  <polygon points="600,528 610,548 600,568 590,548" fill="#c8920e" opacity="0.5"/>
+
+</svg>
