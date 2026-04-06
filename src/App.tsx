@@ -460,7 +460,7 @@ function IntroScreen({ onStart, onSolo }: { onStart:()=>void; onSolo:()=>void })
           <div style={{flex:1,height:1,background:"linear-gradient(90deg,transparent,rgba(195,160,70,.5),transparent)"}}/>
         </div>
         <div style={{opacity:p>=4?1:0,transform:p>=4?"translateY(0)":"translateY(16px)",transition:"opacity .6s ease,transform .6s ease",display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
-          <button onClick={onSolo} style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:14,fontWeight:700,letterSpacing:4,color:"#c8920e",background:"transparent",border:"1px solid rgba(200,150,50,.4)",borderRadius:2,padding:"14px 48px",cursor:"pointer",textTransform:"uppercase",animation:"btnGlow 3s ease-in-out infinite",outline:"none"}}>⚡ COMENZAR</button>
+          <button onClick={onSolo} style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:14,fontWeight:700,letterSpacing:4,color:"#c8920e",background:"transparent",border:"1px solid rgba(200,150,50,.4)",borderRadius:2,padding:"14px 48px",cursor:"pointer",textTransform:"uppercase",animation:"btnGlow 3s ease-in-out infinite",outline:"none"}}>🧍 INDIVIDUAL</button>
           <button onClick={onStart} style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:11,letterSpacing:3,color:"rgba(200,165,80,.7)",background:"transparent",border:"1px solid rgba(200,150,50,.25)",borderRadius:2,padding:"10px 32px",cursor:"pointer",textTransform:"uppercase",outline:"none"}}>🌐 Multijugador en red</button>
           <button onClick={share} style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:11,letterSpacing:2,color:"rgba(200,165,80,.5)",background:"transparent",border:"1px solid rgba(200,150,50,.15)",borderRadius:2,padding:"8px 24px",cursor:"pointer",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,outline:"none"}}>🔗 Compartir enlace</button>
           <p style={{margin:0,fontSize:10,color:"rgba(155,125,65,.38)",letterSpacing:1,textTransform:"uppercase"}}>🎺 🥁 🪘 🎵 · Individual o multijugador</p>
@@ -1034,7 +1034,7 @@ export default function App() {
 
       {popupPlayer&&<PlayerPopup player={popupPlayer} onClose={()=>setPopupPlayer(null)}/>}
 
-      {screen==="intro"&&<IntroScreen onStart={()=>setScreen("lobby")} onSolo={()=>{setIsHost(true);setScreen("register");}}/>}
+      {screen==="intro"&&<IntroScreen onStart={()=>setScreen("lobby")} onSolo={()=>{setIsHost(true);setRoomCode("__solo__");setScreen("register");}}/>}
       {screen==="lobby"&&<LobbyScreen onHost={handleHost} onJoin={handleJoin} onBack={()=>setScreen("intro")}/>}
       {screen==="register"&&<RegisterScreen usedAvatars={usedAvatars} usedNames={usedNames} onDone={handleRegister} audio={audio}/>}
       {screen==="waiting"&&<WaitingRoom roomCode={roomCode} players={players} isHost={isHost} myName={myName} onStart={handleStart} onLeave={handleRestart}/>}
