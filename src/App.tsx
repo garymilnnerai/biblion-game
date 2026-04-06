@@ -281,7 +281,7 @@ function useAudio() {
   }, [playTrumpet, playDrum, playTambourine, playHarp]);
 
   const playAvatarSelect = useCallback(() => {
-    [523,659,784,1047].forEach((n,i)=>tone(n,0.55,"sine" as any,i*0.07));
+    [523,659,784,1047].forEach((n,i)=>tone(n,0.55,0.22,"sine",i*0.07));
     tone(2093,0.9,0.07,"sine",0.2);
   }, [tone]);
 
