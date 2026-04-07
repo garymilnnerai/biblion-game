@@ -343,8 +343,10 @@ const DB = [
 // ═══════════════════════════════════════════════════════════════
 //  CONFIG
 // ═══════════════════════════════════════════════════════════════
-const POINTS    = { direct:5, h1:3, h2:2, h3:1, wrong:-2 };
-const CHALLENGE = { correct:6, wrong:-3 };
+const POINTS    = { direct:5, h1:3, h2:2, h3:1, wrong:-5 };
+const STEPS     = { correct:1, wrong:-2, challengeCorrect:2, challengeWrong:-2 };
+const CHALLENGE = { correct:10, wrong:-8 };
+const BUZZ_LOCK = 3; // segundos bloqueados al inicio
 const TOTAL     = 66;
 const TIMER_SEC = 15;
 const CHALLENGE_SQUARES = [13, 26, 39, 52, 60];
@@ -943,10 +945,24 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
   const catInfo=CATS[question.cat as keyof typeof CATS]||CATS.Eventos;
   const pts=isChallenge?CHALLENGE.correct:ptsFor(hr);
   const [timer,setTimer]=useState(TIMER_SEC);
+  const [buzzLock,setBuzzLock]=useState(true);
+  const [lockCount,setLockCount]=useState(BUZZ_LOCK);
   const timerRef=useRef<any>(null);
+  const lockRef=useRef<any>(null);
+  const isSolo=players.length===1;
 
   useEffect(()=>{
     setTimer(TIMER_SEC);
+    setBuzzLock(!isSolo); // solo bloqueamos en multijugador
+    setLockCount(BUZZ_LOCK);
+    if(!isSolo){
+      lockRef.current=setInterval(()=>{
+        setLockCount(c=>{
+          if(c<=1){clearInterval(lockRef.current);setBuzzLock(false);return 0;}
+          return c-1;
+        });
+      },1000);
+    }
     timerRef.current=setInterval(()=>{
       setTimer(t=>{
         audio.playTimerTick(t);
@@ -954,26 +970,34 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
         return t-1;
       });
     },1000);
-    return ()=>clearInterval(timerRef.current);
-  },[buzzed.length, qIdx]);
+    return ()=>{clearInterval(timerRef.current);clearInterval(lockRef.current);};
+  },[buzzed.length,qIdx]);
+
+  const myPlayer=players.find((p:any)=>p.name===myName)||players[0];
+  const otherPlayers=players.filter((p:any)=>p.name!==myName);
+  const myUsed=buzzed.includes(myPlayer?.name);
 
   return (
     <div style={{...S.wrap,paddingTop:0,animation:isChallenge?"chalFlash 0.9s infinite":"none"}}>
       <style>{FONTS}</style>
+      {/* Progreso */}
       <div style={{width:"100%",maxWidth:440,height:3,background:"rgba(255,255,255,.08)",borderRadius:999,overflow:"hidden",marginBottom:10}}>
         <div style={{height:"100%",background:"linear-gradient(90deg,#c8920e,#d4b060)",borderRadius:999,width:`${((qIdx+1)/total)*100}%`,transition:"width .5s ease"}}/>
       </div>
+      {/* Categoría */}
       <div style={{alignSelf:"flex-start",borderRadius:999,padding:"5px 14px",marginBottom:10,display:"flex",alignItems:"center",gap:6,background:catInfo.bg,border:`1px solid ${catInfo.color}50`}}>
         <span style={{fontSize:14}}>{catInfo.icon}</span>
         <span style={{fontSize:11,fontWeight:"bold",color:catInfo.color,letterSpacing:1}}>{question.cat}</span>
         <span style={{fontSize:9,color:"#888",marginLeft:4}}>P.{qIdx+1}/{total}</span>
       </div>
+      {/* Temporizador */}
       <div style={{width:"100%",maxWidth:440,height:6,background:"rgba(255,255,255,.08)",borderRadius:999,overflow:"hidden",marginBottom:12,position:"relative"}}>
         <div style={{height:"100%",borderRadius:999,background:timer>8?"#6BAD74":timer>4?"#D4B95A":"#D4695A",width:`${(timer/TIMER_SEC)*100}%`,transition:"width 1s linear,background .5s"}}/>
         <span style={{position:"absolute",right:4,top:-1,fontSize:9,color:"#888"}}>{timer}s</span>
       </div>
+      {/* Pregunta */}
       <div style={{background:isChallenge?"rgba(255,68,68,0.08)":"rgba(200,160,80,.06)",border:`1px solid ${isChallenge?"rgba(255,68,68,0.3)":"rgba(200,160,80,.18)"}`,borderRadius:14,padding:"16px",marginBottom:12,width:"100%",maxWidth:440}}>
-        {isChallenge&&<div style={{fontSize:11,color:"#FF6666",letterSpacing:2,marginBottom:8,fontWeight:"bold"}}>⚡ ¡DESAFÍO! Correcto +{CHALLENGE.correct} casillas · Error {CHALLENGE.wrong} casillas</div>}
+        {isChallenge&&<div style={{fontSize:11,color:"#FF6666",letterSpacing:2,marginBottom:8,fontWeight:"bold"}}>⚡ ¡DESAFÍO! +{CHALLENGE.correct}pts +{STEPS.challengeCorrect} cas. · Error: {CHALLENGE.wrong}pts {STEPS.challengeWrong} cas.</div>}
         <p style={{fontSize:18,fontWeight:"bold",color:"#e8d8b0",lineHeight:1.4,margin:"0 0 10px",fontFamily:"'Cinzel',Georgia,serif"}}>{question.q.replace("⚡ DESAFÍO: ","")}</p>
         {hr>0&&<div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:8}}>
           {question.hints.slice(0,hr).map((h:string,i:number)=>(
@@ -983,26 +1007,72 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
             </div>
           ))}
         </div>}
-        <div style={{fontSize:11,color:"#888"}}>Puntos si aciertas: <b style={{color:isChallenge?"#FF6666":"#d4b060"}}>{pts} {isChallenge?"casillas":"pts"}</b></div>
+        <div style={{display:"flex",gap:16,fontSize:11}}>
+          <span>✅ <b style={{color:"#6BAD74"}}>+{pts}pts +1 cas.</b></span>
+          <span>❌ <b style={{color:"#D4695A"}}>{POINTS.wrong}pts {STEPS.wrong} cas.</b></span>
+        </div>
       </div>
+      {/* Pista */}
       {hr<question.hints.length&&<button style={{...S.hintBtn,marginBottom:12}} onClick={onHint}>💡 Pista {hr+1} de {question.hints.length}</button>}
-      <p style={{color:"#555",fontSize:11,marginBottom:6,letterSpacing:1,fontFamily:"'Cinzel',Georgia,serif"}}>{players.length===1?"¿Sabés la respuesta?":"¿QUIÉN RESPONDE PRIMERO?"}</p>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(120px,1fr))",gap:8,width:"100%",maxWidth:440}}>
-        {players.map((p:any)=>{
-          const used=buzzed.includes(p.name);
-          const isMe=p.name===myName;
-          return (
-            <button key={p.name} disabled={used||!isMe} onClick={()=>{if(!used&&isMe){audio.playBuzz();onBuzz(p.name);}}}
-              style={{border:isMe?"2px solid rgba(255,255,255,.4)":"none",borderRadius:12,padding:"13px 8px",cursor:(used||!isMe)?"not-allowed":"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:3,background:used?"rgba(255,255,255,.04)":p.color,opacity:used?.3:isMe?1:.6,boxShadow:"0 3px 10px rgba(0,0,0,.4)",fontFamily:"inherit",position:"relative"}}>
-              {p.position>=61&&!used&&<div style={{position:"absolute",top:-3,right:-3,width:8,height:8,borderRadius:"50%",background:"#FFD700"}}/>}
-              <span style={{fontSize:20}}>{AVATARS[p.avatar]?.emoji||"?"}</span>
-              <b style={{fontSize:12,color:"#fff"}}>{players.length===1?"¡RESPONDER!":p.name}</b>
-              <small style={{color:"rgba(255,255,255,.75)",fontSize:10}}>{p.score}pts · C{p.position}</small>
-            </button>
-          );
-        })}
-      </div>
-      {players.length>1&&<p style={{color:"#444",fontSize:10,marginTop:10}}>Solo podés tocar tu propio botón</p>}
+
+      {/* BUZZ LOCK */}
+      {buzzLock&&!isSolo&&(
+        <div style={{width:"100%",maxWidth:440,background:"rgba(255,68,68,.07)",border:"1px solid rgba(255,68,68,.25)",borderRadius:12,padding:"10px 14px",textAlign:"center",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+          <div style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,68,68,.15)",border:"2px solid #FF6666",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold",color:"#FF6666",fontSize:16,fontFamily:"'Cinzel',Georgia,serif",flexShrink:0}}>{lockCount}</div>
+          <div>
+            <div style={{color:"#FF8888",fontSize:12,letterSpacing:1,fontFamily:"'Cinzel',Georgia,serif"}}>🔒 LEÉD LA PREGUNTA</div>
+            <div style={{fontSize:10,color:"#555",marginTop:2}}>Los botones se habilitan en {lockCount}s</div>
+          </div>
+        </div>
+      )}
+
+      {/* Avatares de otros jugadores (pequeños, decorativos) */}
+      {!isSolo&&otherPlayers.length>0&&(
+        <div style={{display:"flex",gap:12,marginBottom:10,justifyContent:"center",flexWrap:"wrap"}}>
+          {otherPlayers.map((p:any)=>{
+            const used=buzzed.includes(p.name);
+            return (
+              <div key={p.name} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,opacity:used?.15:buzzLock?.4:.55,transition:"opacity .4s"}}>
+                <div style={{width:42,height:42,borderRadius:"50%",background:p.color+"40",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,border:`2px solid ${p.color}60`}}>
+                  {AVATARS[p.avatar]?.emoji||"?"}
+                </div>
+                <span style={{fontSize:9,color:"#666",fontFamily:"'Cinzel',Georgia,serif"}}>{p.name}</span>
+                <span style={{fontSize:8,color:"#444"}}>{p.score}pts</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* BOTÓN GRANDE — propio jugador */}
+      {myPlayer&&(
+        <button
+          disabled={buzzLock||myUsed}
+          onClick={()=>{if(!buzzLock&&!myUsed){audio.playBuzz();onBuzz(myPlayer.name);}}}
+          style={{
+            width:"100%",maxWidth:440,padding:isSolo?"18px":"22px 16px",
+            background:buzzLock?"rgba(255,255,255,.04)":myUsed?"rgba(255,255,255,.04)":`linear-gradient(160deg,${myPlayer.color}cc,${myPlayer.color}88)`,
+            border:buzzLock?"2px solid rgba(255,68,68,.2)":myUsed?"2px solid rgba(255,255,255,.05)":`2px solid ${myPlayer.color}`,
+            borderRadius:18,
+            cursor:buzzLock||myUsed?"not-allowed":"pointer",
+            display:"flex",flexDirection:"column",alignItems:"center",gap:6,
+            boxShadow:(!buzzLock&&!myUsed)?`0 0 35px ${myPlayer.color}50,0 4px 20px rgba(0,0,0,.5)`:"0 2px 8px rgba(0,0,0,.3)",
+            transition:"all .35s",opacity:myUsed?.25:1,
+            fontFamily:"inherit",
+            animation:(!buzzLock&&!myUsed)?"btnGlow 2s ease-in-out infinite":"none",
+            position:"relative"
+          }}>
+          {myPlayer.position>=61&&!myUsed&&<div style={{position:"absolute",top:-8,right:-8,fontSize:12,background:"#1a1000",borderRadius:999,padding:"2px 8px",border:"1px solid #FFD700",color:"#FFD700"}}>🏆 CERCA</div>}
+          <span style={{fontSize:isSolo?32:44,filter:myUsed?"grayscale(1)":"none",transition:"filter .3s"}}>{AVATARS[myPlayer.avatar]?.emoji||"?"}</span>
+          <span style={{fontFamily:"'Cinzel',Georgia,serif",fontSize:isSolo?14:18,fontWeight:"bold",color:buzzLock?"#444":myUsed?"#333":"#fff",letterSpacing:3,textShadow:(!buzzLock&&!myUsed)?"0 0 20px rgba(255,255,255,.3)":"none"}}>
+            {isSolo?(myUsed?"RESPONDIDO":"⚡ RESPONDER"):buzzLock?`🔒 ESPERA ${lockCount}s`:myUsed?"YA BUZZASTE":"⚡ RESPONDER"}
+          </span>
+          <span style={{fontSize:10,color:buzzLock?"#333":myUsed?"#222":"rgba(255,255,255,.6)"}}>
+            {myPlayer.name} · {myPlayer.score}pts · Casilla {myPlayer.position}
+          </span>
+        </button>
+      )}
+      {!isSolo&&<p style={{color:"#2a2a2a",fontSize:9,marginTop:8,letterSpacing:1,textAlign:"center"}}>⚠ Error: {POINTS.wrong}pts y {STEPS.wrong} casillas · Penalidad alta</p>}
     </div>
   );
 }
@@ -1294,14 +1364,14 @@ export default function App() {
     if(!activeName) return;
     const ok=norm(opt)===norm(cQ.a);
     const isChallenge=cQ.cat==="Desafío";
-    const steps=ok?(isChallenge?CHALLENGE.correct:1):(isChallenge?-1:0);
+    const steps=ok?(isChallenge?STEPS.challengeCorrect:STEPS.correct):(isChallenge?STEPS.challengeWrong:STEPS.wrong);
     const ptsChange=ok?(isChallenge?CHALLENGE.correct:ptsFor(hr)):(isChallenge?CHALLENGE.wrong:POINTS.wrong);
-    const ptsLabel=`${ok?"+":""}${ptsChange} pts`;
+    const ptsLabel=`${ok?"+":""}${ptsChange} pts · ${steps>0?"+"+steps:steps} casilla${Math.abs(steps)!==1?"s":""}`;
 
     const activePlayer=players.find(p=>p.name===activeName)||players[0];
     if(!activePlayer) return;
 
-    const newScore=Math.max(0,activePlayer.score+(ok?ptsFor(hr):0));
+    const newScore=Math.max(0,activePlayer.score+(ok?ptsFor(hr):POINTS.wrong));
     const newPos=Math.min(TOTAL,Math.max(1,activePlayer.position+steps));
 
     if(ok) audio.playCorrect(); else audio.playWrong();
