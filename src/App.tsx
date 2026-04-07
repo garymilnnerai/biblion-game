@@ -715,33 +715,53 @@ function LobbyScreen({ onHost, onJoin, onBack }: { onHost:()=>void; onJoin:(code
 // ═══════════════════════════════════════════════════════════════
 //  WAITING ROOM — sala de espera con código
 // ═══════════════════════════════════════════════════════════════
-function WaitingRoom({ roomCode, players, isHost, myName, onStart, onLeave }: any) {
-  const prevCount = useRef(players.length);
+function WaitingRoom({ roomCode, players, pending, isHost, myName, onStart, onLeave, onAdmit }: any) {
+  const prevPlayers = useRef(players.length);
+  const prevPending = useRef((pending||[]).length);
 
-  // 🔔 Ping al anfitrión cuando alguien nuevo se une
+  // 🔔 Ping cuando alguien nuevo solicita unirse (solo anfitrión)
   useEffect(()=>{
-    if(players.length > prevCount.current && isHost) {
+    const newPending = (pending||[]).length;
+    if(isHost && newPending > prevPending.current) {
       try {
         const ctx = new (window.AudioContext||(window as any).webkitAudioContext)();
-        // Ping corto
         const o=ctx.createOscillator(), g=ctx.createGain();
         o.connect(g); g.connect(ctx.destination);
         o.type="sine"; o.frequency.value=880;
         g.gain.setValueAtTime(0, ctx.currentTime);
         g.gain.linearRampToValueAtTime(0.4, ctx.currentTime+0.01);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.5);
-        o.start(ctx.currentTime); o.stop(ctx.currentTime+0.55);
-        // Segunda nota
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.45);
+        o.start(ctx.currentTime); o.stop(ctx.currentTime+0.5);
         const o2=ctx.createOscillator(), g2=ctx.createGain();
         o2.connect(g2); g2.connect(ctx.destination);
         o2.type="sine"; o2.frequency.value=1100;
-        g2.gain.setValueAtTime(0, ctx.currentTime+0.15);
-        g2.gain.linearRampToValueAtTime(0.3, ctx.currentTime+0.16);
+        g2.gain.setValueAtTime(0, ctx.currentTime+0.18);
+        g2.gain.linearRampToValueAtTime(0.3, ctx.currentTime+0.19);
         g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.5);
-        o2.start(ctx.currentTime+0.15); o2.stop(ctx.currentTime+0.55);
+        o2.start(ctx.currentTime+0.18); o2.stop(ctx.currentTime+0.55);
       } catch(e){}
     }
-    prevCount.current = players.length;
+    prevPending.current = newPending;
+  }, [(pending||[]).length]);
+
+  // 🎺 Trompeta cuando alguien es admitido
+  useEffect(()=>{
+    if(players.length > prevPlayers.current) {
+      try {
+        const ctx = new (window.AudioContext||(window as any).webkitAudioContext)();
+        [[392,0],[523,0.15],[659,0.3]].forEach(([freq,delay])=>{
+          const o=ctx.createOscillator(), g=ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type="sawtooth"; o.frequency.value=freq as number;
+          g.gain.setValueAtTime(0, ctx.currentTime+(delay as number));
+          g.gain.linearRampToValueAtTime(0.35, ctx.currentTime+(delay as number)+0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+(delay as number)+0.22);
+          o.start(ctx.currentTime+(delay as number));
+          o.stop(ctx.currentTime+(delay as number)+0.25);
+        });
+      } catch(e){}
+    }
+    prevPlayers.current = players.length;
   }, [players.length]);
 
   const share=()=>{
@@ -749,26 +769,59 @@ function WaitingRoom({ roomCode, players, isHost, myName, onStart, onLeave }: an
     if(navigator.clipboard) navigator.clipboard.writeText(msg).then(()=>alert("¡Mensaje copiado para WhatsApp! 📱"));
   };
 
+  // ¿El invitado ya fue admitido?
+  const iAmAdmitted = players.find((p:any)=>p.name===myName);
+  // ¿Estoy en pending esperando?
+  const iAmPending = !isHost && !iAmAdmitted;
+
   return (
     <div style={S.wrap}>
       <style>{FONTS}</style>
       <h2 style={S.h2}>🏠 Sala de espera</h2>
 
-      {/* Room code */}
-      <div style={{background:"rgba(200,146,14,.08)",border:"2px solid rgba(200,146,14,.4)",borderRadius:16,padding:"20px 32px",marginBottom:16,textAlign:"center"}}>
-        <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:8}}>CÓDIGO DE SALA</div>
-        <div style={{fontFamily:"'Cinzel Decorative',Georgia,serif",fontSize:40,color:"#FFD700",letterSpacing:12,animation:"codePulse 2s ease-in-out infinite"}}>{roomCode}</div>
+      {/* Código de sala */}
+      <div style={{background:"rgba(200,146,14,.08)",border:"2px solid rgba(200,146,14,.4)",borderRadius:16,padding:"18px 28px",marginBottom:14,textAlign:"center"}}>
+        <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:6}}>CÓDIGO DE SALA</div>
+        <div style={{fontFamily:"'Cinzel Decorative',Georgia,serif",fontSize:38,color:"#FFD700",letterSpacing:12,animation:"codePulse 2s ease-in-out infinite"}}>{roomCode}</div>
         <div style={{fontSize:10,color:"#666",marginTop:6}}>Compartí este código con tus jugadores</div>
       </div>
 
-      <button onClick={share} style={{...S.secBtn,marginBottom:16,display:"flex",alignItems:"center",gap:8,fontSize:12}}>
+      <button onClick={share} style={{...S.secBtn,marginBottom:14,display:"flex",alignItems:"center",gap:8,fontSize:12}}>
         📱 Copiar código para WhatsApp
       </button>
 
-      {/* Players list */}
+      {/* VISTA INVITADO — esperando ser admitido */}
+      {iAmPending&&(
+        <div style={{background:"rgba(200,146,14,.07)",border:"1px solid rgba(200,146,14,.3)",borderRadius:14,padding:"20px",marginBottom:14,textAlign:"center",width:"100%",maxWidth:380}}>
+          <div style={{fontSize:32,marginBottom:10,animation:"spin 3s linear infinite"}}>⏳</div>
+          <div style={{fontFamily:"'Cinzel',Georgia,serif",color:"#c8a850",fontSize:15,letterSpacing:1,marginBottom:6}}>Esperando admisión…</div>
+          <div style={{fontSize:11,color:"#666"}}>El anfitrión recibirá una notificación y te admitirá en breve</div>
+        </div>
+      )}
+
+      {/* VISTA ANFITRIÓN — solicitudes de ingreso */}
+      {isHost&&(pending||[]).length>0&&(
+        <div style={{width:"100%",maxWidth:380,marginBottom:14}}>
+          <div style={{fontSize:11,color:"#FF8844",letterSpacing:2,marginBottom:8,textAlign:"center",display:"flex",alignItems:"center",gap:6,justifyContent:"center"}}>
+            <span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",background:"#FF8844",animation:"nearPulse .7s ease-in-out infinite alternate"}}/>
+            🔔 SOLICITUDES DE INGRESO ({(pending||[]).length})
+          </div>
+          {(pending||[]).map((p:any)=>(
+            <div key={p.name} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(255,136,68,.08)",borderRadius:10,padding:"10px 14px",marginBottom:6,border:"1px solid rgba(255,136,68,.3)",animation:"slideUp .3s ease"}}>
+              <span style={{fontSize:22}}>{AVATARS[p.avatar]?.emoji||"?"}</span>
+              <span style={{flex:1,color:"#e8d8b0",fontFamily:"'Cinzel',Georgia,serif",fontSize:13}}>{p.name}</span>
+              <button onClick={()=>onAdmit(p)} style={{background:"linear-gradient(135deg,#c8920e,#7a4e08)",border:"none",borderRadius:8,padding:"7px 16px",color:"#fffbe8",fontSize:12,fontWeight:"bold",cursor:"pointer",fontFamily:"inherit",letterSpacing:1}}>
+                ✅ Admitir
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Lista de jugadores admitidos */}
       <div style={{width:"100%",maxWidth:380,marginBottom:16}}>
-        <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:10,textAlign:"center"}}>
-          JUGADORES EN SALA ({players.length})
+        <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:8,textAlign:"center"}}>
+          EN SALA ({players.length})
         </div>
         {players.map((p:any,i:number)=>(
           <div key={p.name} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(255,255,255,.04)",borderRadius:10,padding:"10px 14px",marginBottom:6,border:p.name===myName?"1px solid rgba(200,146,14,.4)":"1px solid transparent",animation:"slideUp .4s ease"}}>
@@ -778,30 +831,20 @@ function WaitingRoom({ roomCode, players, isHost, myName, onStart, onLeave }: an
             {i===0&&<span style={{fontSize:10,color:"#888",background:"rgba(255,255,255,.06)",borderRadius:999,padding:"2px 8px"}}>Anfitrión</span>}
           </div>
         ))}
-        {players.length<2&&(
-          <p style={{textAlign:"center",color:"#555",fontSize:11,marginTop:8}}>
-            {isHost?"Esperando que se unan más jugadores...":"Esperando que el anfitrión inicie el juego..."}
-          </p>
-        )}
+        {players.length<2&&isHost&&<p style={{textAlign:"center",color:"#555",fontSize:11,marginTop:8}}>Admití al menos un jugador para iniciar</p>}
+        {iAmAdmitted&&!isHost&&players.length>=2&&<p style={{textAlign:"center",color:"#555",fontSize:11,marginTop:8}}>⏳ Esperando que el anfitrión inicie la partida…</p>}
       </div>
 
-      {/* Mensaje para invitados */}
-      {!isHost&&players.length>=2&&(
-        <div style={{background:"rgba(200,146,14,.06)",border:"1px solid rgba(200,146,14,.2)",borderRadius:12,padding:"12px 18px",marginBottom:14,textAlign:"center",width:"100%",maxWidth:380}}>
-          <span style={{fontSize:12,color:"#c8a850",fontFamily:"'Cinzel',Georgia,serif",letterSpacing:1}}>
-            ⏳ Esperando que el anfitrión inicie…
-          </span>
-        </div>
-      )}
-
       {/* Botones */}
-      <div style={{display:"flex",gap:10}}>
+      <div style={{display:"flex",gap:10,flexWrap:"wrap",justifyContent:"center"}}>
         {isHost&&players.length>=2&&(
-          <button style={S.mainBtn} onClick={onStart}>⚡ INICIAR JUEGO ({players.length} jugadores)</button>
+          <button style={S.mainBtn} onClick={onStart}>
+            ⚡ INICIAR PARTIDA ({players.length} jugadores)
+          </button>
         )}
         {isHost&&players.length<2&&(
-          <button style={{...S.mainBtn,opacity:.5,cursor:"not-allowed"}} disabled>
-            Mínimo 2 jugadores para iniciar
+          <button style={{...S.mainBtn,opacity:.45,cursor:"not-allowed"}} disabled>
+            Admití mínimo 2 jugadores
           </button>
         )}
         <button style={S.secBtn} onClick={onLeave}>← Salir</button>
@@ -1105,6 +1148,7 @@ export default function App() {
   const buzzed: string[] = isSolo ? soloBuzzed : (gameState?.buzzed || []);
   const buzzer: string|null = isSolo ? (soloBuzzed.length===0 ? null : null) : (gameState?.buzzer || null);
   const result: any = isSolo ? soloResult : (gameState?.result || null);
+  const pending: any[] = gameState?.pending ? Object.values(gameState.pending) : [];
   const cQ = questions[qIdx];
 
   // Subscribe to room
@@ -1184,17 +1228,23 @@ export default function App() {
         }
       });
     } else {
-      // Entra directo a la sala — el anfitrión ve la lista y decide cuándo iniciar
+      // Va a pending — el anfitrión lo admite antes de pasar a la sala
       const snap=await get(ref(db,`rooms/${code}`));
       if(!snap.exists()){alert("Sala no encontrada. Verificá el código.");return;}
-      const data=snap.val();
-      const existingPlayers=Object.values(data.players||{}) as any[];
-      const colorIdx=existingPlayers.length%PLAYER_COLORS.length;
-      await update(ref(db,`rooms/${code}/players`),{
-        [name]:{ name, avatar, score:0, position:1, color:PLAYER_COLORS[colorIdx] }
+      await update(ref(db,`rooms/${code}/pending`),{
+        [name]:{ name, avatar }
       });
     }
     setScreen("waiting");
+  };
+
+  // HOST: admitir jugador desde pending a players
+  const handleAdmit = async (p: any) => {
+    const colorIdx = players.length % PLAYER_COLORS.length;
+    await update(ref(db,`rooms/${roomCode}/players`),{
+      [p.name]:{ name:p.name, avatar:p.avatar, score:0, position:1, color:PLAYER_COLORS[colorIdx] }
+    });
+    await update(ref(db,`rooms/${roomCode}/pending`),{ [p.name]: null });
   };
 
   // HOST: start game
@@ -1331,7 +1381,7 @@ export default function App() {
       {screen==="intro"&&<IntroScreen onStart={()=>setScreen("lobby")} onSolo={()=>{setIsSoloMode(true);setIsHost(false);setScreen("register");}}/>}
       {screen==="lobby"&&<LobbyScreen onHost={handleHost} onJoin={handleJoin} onBack={()=>setScreen("intro")}/>}
       {screen==="register"&&<RegisterScreen usedAvatars={usedAvatars} usedNames={usedNames} onDone={handleRegister} audio={audio}/>}
-      {screen==="waiting"&&<WaitingRoom roomCode={roomCode} players={players} isHost={isHost} myName={myName} onStart={handleStart} onLeave={handleRestart}/>}
+      {screen==="waiting"&&<WaitingRoom roomCode={roomCode} players={players} pending={pending} isHost={isHost} myName={myName} onStart={handleStart} onLeave={handleRestart} onAdmit={handleAdmit}/>}
       {screen==="narrative"&&<NarrativeScreen onDone={handleNarrativeDone}/>}
       {screen==="game"&&cQ&&!showBoard&&(
         <QuestionScreen question={cQ} players={players} hr={hr} onHint={addHint}
