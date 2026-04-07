@@ -1161,7 +1161,10 @@ export default function App() {
       if(!data) return;
       setGameState(data);
       const s = data.screen as Screen;
-      if(s) setScreen(s);
+      // Solo avanzar pantallas del juego — nunca retroceder a waiting desde register
+      if(s === "narrative" || s === "game" || s === "answer" || s === "result" || s === "win") {
+        setScreen(s);
+      }
       // Detect challenge square crossings
       if(data.players){
         Object.values(data.players).forEach((p:any)=>{
@@ -1183,10 +1186,14 @@ export default function App() {
   };
 
   // JOIN: join existing room
+  const pendingRoomCode = useRef("");
+
   const handleJoin = async (code:string) => {
     const snap = await get(ref(db,`rooms/${code}`));
     if(!snap.exists()){alert("Sala no encontrada. Verificá el código.");return;}
-    setRoomCode(code);
+    // Guardamos el código en un ref pero NO en state todavía
+    // para que el listener Firebase no se active antes del registro
+    pendingRoomCode.current = code;
     setIsHost(false);
     setScreen("register");
   };
@@ -1207,7 +1214,8 @@ export default function App() {
       setScreen("narrative");
       return;
     }
-    let code = roomCode;
+    // Para invitados usar el código pendiente (no está en roomCode todavía)
+    let code = isHost ? roomCode : (pendingRoomCode.current || roomCode);
     if(isHost){
       code = genRoomCode();
       let attempts=0;
@@ -1228,12 +1236,19 @@ export default function App() {
         }
       });
     } else {
-      // Va a pending — el anfitrión lo admite antes de pasar a la sala
+      // Invitado: ahora sí seteamos roomCode para activar el listener Firebase
       const snap=await get(ref(db,`rooms/${code}`));
       if(!snap.exists()){alert("Sala no encontrada. Verificá el código.");return;}
+      // Verificar nombre duplicado
+      const data=snap.val();
+      if(data.players && data.players[name]){alert("Ya hay un jugador con ese nombre en la sala.");return;}
+      // Subir a pending
       await update(ref(db,`rooms/${code}/pending`),{
         [name]:{ name, avatar }
       });
+      // Activar listener DESPUÉS de registrarse
+      setRoomCode(code);
+      pendingRoomCode.current = "";
     }
     setScreen("waiting");
   };
@@ -1336,6 +1351,7 @@ export default function App() {
     audio.stopTickTock();
     setRoomCode(""); setMyName(""); setIsHost(false); setGameState(null);
     setIsSoloMode(false);
+    pendingRoomCode.current = "";
     soloQuestionsRef.current = [];
     setSoloPlayers([]); setSoloQuestions([]); setSoloQIdx(0); setSoloHr(0); setSoloBuzzed([]); setSoloResult(null);
     setScreen("intro");
