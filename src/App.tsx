@@ -1161,26 +1161,6 @@ function NarrativeScreen({ onDone, audio }: { onDone:()=>void; audio:any }) {
     </div>
   );
 }
-  return (
-    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#0d0700",fontFamily:"'Cinzel',Georgia,serif"}}>
-      <style>{FONTS}</style>
-      <div style={{textAlign:"center",padding:24,maxWidth:480}}>
-        {lines.map((l,i)=>(
-          <p key={i} style={{
-            fontSize:i===step?(i===1?22:18):14,
-            color:i===step?(i===1?"#FFD700":"#c8a850"):i<step?"rgba(200,168,80,.4)":"rgba(200,168,80,.08)",
-            margin:"12px 0",letterSpacing:i===1?3:2,
-            transition:"all .9s ease",
-            fontStyle:i===1?"normal":"italic",
-            fontWeight:i===1&&i===step?"bold":"normal",
-            textShadow:i===1&&i===step?"0 0 30px rgba(255,215,0,.4)":"none"
-          }}>{l}</p>
-        ))}
-        <div style={{marginTop:32,height:2,background:"linear-gradient(90deg,transparent,rgba(200,146,14,.5),transparent)",width:`${((step+1)/lines.length)*100}%`,transition:"width 1.3s ease",margin:"32px auto 0",maxWidth:300}}/>
-      </div>
-    </div>
-  );
-}
 
 // ═══════════════════════════════════════════════════════════════
 //  QUESTION SCREEN
