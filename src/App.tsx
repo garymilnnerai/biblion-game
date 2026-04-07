@@ -716,39 +716,94 @@ function LobbyScreen({ onHost, onJoin, onBack }: { onHost:()=>void; onJoin:(code
 //  WAITING ROOM — sala de espera con código
 // ═══════════════════════════════════════════════════════════════
 function WaitingRoom({ roomCode, players, isHost, myName, onStart, onLeave }: any) {
+  const prevCount = useRef(players.length);
+
+  // 🔔 Ping al anfitrión cuando alguien nuevo se une
+  useEffect(()=>{
+    if(players.length > prevCount.current && isHost) {
+      try {
+        const ctx = new (window.AudioContext||(window as any).webkitAudioContext)();
+        // Ping corto
+        const o=ctx.createOscillator(), g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type="sine"; o.frequency.value=880;
+        g.gain.setValueAtTime(0, ctx.currentTime);
+        g.gain.linearRampToValueAtTime(0.4, ctx.currentTime+0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.5);
+        o.start(ctx.currentTime); o.stop(ctx.currentTime+0.55);
+        // Segunda nota
+        const o2=ctx.createOscillator(), g2=ctx.createGain();
+        o2.connect(g2); g2.connect(ctx.destination);
+        o2.type="sine"; o2.frequency.value=1100;
+        g2.gain.setValueAtTime(0, ctx.currentTime+0.15);
+        g2.gain.linearRampToValueAtTime(0.3, ctx.currentTime+0.16);
+        g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.5);
+        o2.start(ctx.currentTime+0.15); o2.stop(ctx.currentTime+0.55);
+      } catch(e){}
+    }
+    prevCount.current = players.length;
+  }, [players.length]);
+
   const share=()=>{
     const msg=`¡Únete a BIBLION! Código de sala: ${roomCode}\n${window.location.href}`;
     if(navigator.clipboard) navigator.clipboard.writeText(msg).then(()=>alert("¡Mensaje copiado para WhatsApp! 📱"));
   };
+
   return (
     <div style={S.wrap}>
       <style>{FONTS}</style>
       <h2 style={S.h2}>🏠 Sala de espera</h2>
+
       {/* Room code */}
-      <div style={{background:"rgba(200,146,14,.08)",border:"2px solid rgba(200,146,14,.4)",borderRadius:16,padding:"20px 32px",marginBottom:20,textAlign:"center"}}>
+      <div style={{background:"rgba(200,146,14,.08)",border:"2px solid rgba(200,146,14,.4)",borderRadius:16,padding:"20px 32px",marginBottom:16,textAlign:"center"}}>
         <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:8}}>CÓDIGO DE SALA</div>
         <div style={{fontFamily:"'Cinzel Decorative',Georgia,serif",fontSize:40,color:"#FFD700",letterSpacing:12,animation:"codePulse 2s ease-in-out infinite"}}>{roomCode}</div>
-        <div style={{fontSize:10,color:"#666",marginTop:8}}>Compartí este código con tus jugadores</div>
+        <div style={{fontSize:10,color:"#666",marginTop:6}}>Compartí este código con tus jugadores</div>
       </div>
-      <button onClick={share} style={{...S.secBtn,marginBottom:20,display:"flex",alignItems:"center",gap:8,fontSize:12}}>
+
+      <button onClick={share} style={{...S.secBtn,marginBottom:16,display:"flex",alignItems:"center",gap:8,fontSize:12}}>
         📱 Copiar código para WhatsApp
       </button>
+
       {/* Players list */}
-      <div style={{width:"100%",maxWidth:380,marginBottom:20}}>
-        <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:10,textAlign:"center"}}>JUGADORES EN SALA ({players.length})</div>
+      <div style={{width:"100%",maxWidth:380,marginBottom:16}}>
+        <div style={{fontSize:11,color:"#888",letterSpacing:2,marginBottom:10,textAlign:"center"}}>
+          JUGADORES EN SALA ({players.length})
+        </div>
         {players.map((p:any,i:number)=>(
-          <div key={p.name} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(255,255,255,.04)",borderRadius:10,padding:"10px 14px",marginBottom:6,border:p.name===myName?"1px solid rgba(200,146,14,.4)":"1px solid transparent"}}>
+          <div key={p.name} style={{display:"flex",alignItems:"center",gap:10,background:"rgba(255,255,255,.04)",borderRadius:10,padding:"10px 14px",marginBottom:6,border:p.name===myName?"1px solid rgba(200,146,14,.4)":"1px solid transparent",animation:"slideUp .4s ease"}}>
             <span style={{fontSize:22}}>{AVATARS[p.avatar]?.emoji||"?"}</span>
             <span style={{flex:1,color:"#e8d8b0",fontFamily:"'Cinzel',Georgia,serif",fontSize:13}}>{p.name}</span>
             {p.name===myName&&<span style={{fontSize:10,color:"#c8920e",background:"rgba(200,146,14,.15)",borderRadius:999,padding:"2px 8px"}}>Tú</span>}
             {i===0&&<span style={{fontSize:10,color:"#888",background:"rgba(255,255,255,.06)",borderRadius:999,padding:"2px 8px"}}>Anfitrión</span>}
           </div>
         ))}
-        {players.length<2&&<p style={{textAlign:"center",color:"#555",fontSize:11,marginTop:8}}>Esperando más jugadores...</p>}
+        {players.length<2&&(
+          <p style={{textAlign:"center",color:"#555",fontSize:11,marginTop:8}}>
+            {isHost?"Esperando que se unan más jugadores...":"Esperando que el anfitrión inicie el juego..."}
+          </p>
+        )}
       </div>
+
+      {/* Mensaje para invitados */}
+      {!isHost&&players.length>=2&&(
+        <div style={{background:"rgba(200,146,14,.06)",border:"1px solid rgba(200,146,14,.2)",borderRadius:12,padding:"12px 18px",marginBottom:14,textAlign:"center",width:"100%",maxWidth:380}}>
+          <span style={{fontSize:12,color:"#c8a850",fontFamily:"'Cinzel',Georgia,serif",letterSpacing:1}}>
+            ⏳ Esperando que el anfitrión inicie…
+          </span>
+        </div>
+      )}
+
+      {/* Botones */}
       <div style={{display:"flex",gap:10}}>
-        {isHost&&players.length>=2&&<button style={S.mainBtn} onClick={onStart}>⚡ INICIAR JUEGO</button>}
-        {isHost&&players.length<2&&<button style={{...S.mainBtn,opacity:.5,cursor:"not-allowed"}} disabled>Esperando jugadores...</button>}
+        {isHost&&players.length>=2&&(
+          <button style={S.mainBtn} onClick={onStart}>⚡ INICIAR JUEGO ({players.length} jugadores)</button>
+        )}
+        {isHost&&players.length<2&&(
+          <button style={{...S.mainBtn,opacity:.5,cursor:"not-allowed"}} disabled>
+            Mínimo 2 jugadores para iniciar
+          </button>
+        )}
         <button style={S.secBtn} onClick={onLeave}>← Salir</button>
       </div>
     </div>
@@ -1129,7 +1184,9 @@ export default function App() {
         }
       });
     } else {
+      // Entra directo a la sala — el anfitrión ve la lista y decide cuándo iniciar
       const snap=await get(ref(db,`rooms/${code}`));
+      if(!snap.exists()){alert("Sala no encontrada. Verificá el código.");return;}
       const data=snap.val();
       const existingPlayers=Object.values(data.players||{}) as any[];
       const colorIdx=existingPlayers.length%PLAYER_COLORS.length;
