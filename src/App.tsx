@@ -31,6 +31,7 @@ const CATS: Record<string,{icon:string;color:string;bg:string}> = {
   Objetos:  { icon:"📦", color:"#5A9BC4", bg:"rgba(90,155,196,0.15)" },
   Eventos:  { icon:"⭐", color:"#C46891", bg:"rgba(196,104,145,0.15)" },
   Desafío:  { icon:"⚡", color:"#FF4444", bg:"rgba(255,68,68,0.12)" },
+  Tesoro:   { icon:"💎", color:"#FFD700", bg:"rgba(255,215,0,0.15)" },
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -391,6 +392,28 @@ const DB = [
   { id:298, cat:"Eventos", q:"¿Qué pasó cuando los apóstoles impusieron las manos a los siete diáconos según Hechos 6?", hints:["Necesitaban ayuda para servir las mesas","La iglesia eligió a siete hombres de buen testimonio","Los apóstoles oraron e impusieron las manos sobre ellos"], a:"Los siete fueron apartados para el ministerio de servicio", opts:["Los siete fueron apartados para el ministerio de servicio","Recibieron el don de lenguas inmediatamente","El Espíritu Santo descendió visiblemente sobre ellos","Fueron enviados de misión a diferentes ciudades"] },
   { id:299, cat:"Desafío", q:"⚡ DESAFÍO: ¿Cuántos años llevaba el hombre cojo de nacimiento que Pedro y Juan sanaron según Hechos 3?", hints:["Estaba en la puerta llamada la Hermosa","Pedro le dijo: no tengo plata ni oro","Llevaba más de 40 años en esa condición"], a:"Más de 40 años", opts:["Más de 40 años","38 años","8 años","12 años"] },
   { id:300, cat:"Desafío", q:"⚡ DESAFÍO: ¿Cuántos rollos de libros quemó el rey Joacim de la profecía de Jeremías según Jeremías 36?", hints:["El escriba Baruc los leyó primero en el templo","El rey los cortaba columna por columna y los quemaba","Solo había un rollo que el rey fue quemando"], a:"Un rollo que fue quemado columna por columna", opts:["Un rollo que fue quemado columna por columna","Siete rollos de la profecía completa","Tres rollos con todas las profecías","El libro entero de Jeremías en diez rollos"] },
+
+  // ═══ 💎 TESORO — Preguntas excepcionales (+25pts +2 casillas) ═══
+  { id:301, cat:"Tesoro", q:"💎 TESORO: ¿Cuántos libros de la Biblia fueron escritos originalmente en arameo parcialmente?", hints:["Son libros del Antiguo Testamento","Uno es Daniel y otro Esdras","Ciertas secciones están en arameo"], a:"Daniel y Esdras (partes en arameo)", opts:["Daniel y Esdras (partes en arameo)","Solo Daniel en su totalidad","Génesis y Job originalmente","Esdras Nehemías y Jeremías"] },
+  { id:302, cat:"Tesoro", q:"💎 TESORO: ¿Cuál fue el único profeta mayor cuyo nacimiento fue anunciado con su nombre antes de nacer, además de Jesús?", hints:["Era un profeta del siglo IX a.C.","Fue anunciado al rey Jeroboam por un hombre de Dios","El profeta se llamaría Josías según 1 Reyes 13"], a:"Josías (anunciado 300 años antes en 1 Reyes 13)", opts:["Josías (anunciado 300 años antes en 1 Reyes 13)","Samuel antes de nacer a Ana","Juan el Bautista anunciado a Zacarías","Sansón anunciado a la esposa de Manoa"] },
+  { id:303, cat:"Tesoro", q:"💎 TESORO: ¿Cuál es el único libro de la Biblia que no menciona el nombre de Dios directamente?", hints:["Es un libro del Antiguo Testamento","Narra la historia de una reina que salvó a su pueblo","El nombre del libro es el nombre de la protagonista"], a:"Ester", opts:["Ester","Rut","Cantares","Filemón"] },
+  { id:304, cat:"Tesoro", q:"💎 TESORO: ¿Qué pasó inmediatamente ANTES de que Elías subiera al cielo según 2 Reyes 2?", hints:["Golpeó las aguas del Jordán con su manto","Las aguas se dividieron como en el tiempo de Moisés","Elías y Eliseo cruzaron al otro lado juntos"], a:"Dividió las aguas del Jordán con su manto", opts:["Dividió las aguas del Jordán con su manto","Oró en el Monte Carmelo por última vez","Se despidió de los hijos de los profetas","Ungió a Eliseo vertiendo aceite sobre él"] },
+  { id:305, cat:"Tesoro", q:"💎 TESORO: ¿Cuántas veces aparece la palabra 'amor' (ahavá) en el libro de Cantares?", hints:["Es el libro más romántico de la Biblia","El amor aparece con mucha frecuencia","Aparece exactamente en los 8 capítulos del libro"], a:"Aproximadamente 32 veces en sus 8 capítulos", opts:["Aproximadamente 32 veces en sus 8 capítulos","Solo 7 veces como número perfecto","Exactamente 66 veces como los libros","Más de 100 veces en todo el libro"] },
+  { id:306, cat:"Tesoro", q:"💎 TESORO: ¿Qué acontecimiento ocurrió DESPUÉS de que Daniel interpretara el sueño de Nabucodonosor en Daniel 2?", hints:["El rey se postró ante Daniel","Luego hizo algo sorprendente con él","Daniel fue elevado a una posición de gran honor"], a:"El rey se postró y lo hizo gobernador de Babilonia", opts:["El rey se postró y lo hizo gobernador de Babilonia","El rey mandó liberarlo de la cárcel inmediatamente","Daniel fue nombrado sumo sacerdote del templo","El rey se convirtió al Dios de Israel en ese momento"] },
+  { id:307, cat:"Tesoro", q:"💎 TESORO: ¿Qué curiosidad tiene el Salmo 117 en relación con toda la Biblia?", hints:["Es el Salmo más corto de la Biblia","Solo tiene 2 versículos","Está exactamente en el centro de la Biblia"], a:"Es el capítulo central de toda la Biblia (cap. 595 de 1189)", opts:["Es el capítulo central de toda la Biblia (cap. 595 de 1189)","Es el único Salmo sin título ni autoría","Es el único capítulo que solo tiene aleluya","Es el Salmo con más idiomas traducidos primero"] },
+  { id:308, cat:"Tesoro", q:"💎 TESORO: ¿Qué pasó ANTES de que Pedro sanara al cojo de la puerta Hermosa según Hechos 3?", hints:["Pedro y Juan iban al templo para orar","Era la hora de la oración de la tarde","Subían al templo a la hora novena del día"], a:"Pedro y Juan subían al templo a la hora novena de oración", opts:["Pedro y Juan subían al templo a la hora novena de oración","Pedro había predicado sobre la resurrección esa mañana","El Espíritu Santo les había indicado que irían a sanar","Habían orado toda la noche antes de ir al templo"] },
+  { id:309, cat:"Tesoro", q:"💎 TESORO: ¿Cuál es la única mujer mencionada por nombre en la genealogía de Jesús en Mateo 1 que fue extranjera?", hints:["Hay cuatro mujeres en total en esa genealogía","Una era moabita y bisabuela de David","Su historia está en el libro que lleva su nombre"], a:"Rut la moabita", opts:["Rut la moabita","Rahab la cananea","Tamar la cananea","Betsabé la hetea"] },
+  { id:310, cat:"Tesoro", q:"💎 TESORO: ¿Qué hecho sorprendente ocurrió con el libro de la ley durante el reinado de Josías según 2 Reyes 22?", hints:["Ocurrió durante las reparaciones del templo","El sumo sacerdote Hilcías lo encontró","Había estado perdido por un largo tiempo"], a:"El libro de la ley fue encontrado en el templo donde estaba perdido", opts:["El libro de la ley fue encontrado en el templo donde estaba perdido","El libro fue revelado por un ángel en una visión","Jeremías lo entregó directamente al rey Josías","Fue descubierto en una cueva cerca de Jerusalén"] },
+  { id:311, cat:"Tesoro", q:"💎 TESORO: ¿Cuál es el versículo más largo de toda la Biblia?", hints:["Está en el libro de Ester","Es Ester 8:9 con alrededor de 90 palabras en hebreo","Habla de un decreto del rey Asuero"], a:"Ester 8:9 (el decreto del rey Asuero)", opts:["Ester 8:9 (el decreto del rey Asuero)","Jeremías 33:3 con la gran promesa divina","Romanos 8:38-39 sobre el amor de Dios","Apocalipsis 1:4-5 con el saludo trinitario"] },
+  { id:312, cat:"Tesoro", q:"💎 TESORO: ¿Qué sucedió inmediatamente DESPUÉS de que Jesús resucitó a Lázaro según Juan 11?", hints:["Muchos judíos creyeron en Jesús","Pero otros hicieron algo diferente","Los fariseos tomaron una decisión crucial"], a:"Muchos creyeron pero otros informaron a los fariseos que decidieron matar a Jesús", opts:["Muchos creyeron pero otros informaron a los fariseos que decidieron matar a Jesús","Todos los presentes se convirtieron al instante","El Sanedrín invitó a Jesús a hablar en el templo","Lázaro comenzó a predicar inmediatamente"] },
+  { id:313, cat:"Tesoro", q:"💎 TESORO: ¿Cuántos idiomas originales fueron usados para escribir la Biblia completa?", hints:["No fue escrita en un solo idioma","El Nuevo Testamento es en griego koiné","El Antiguo Testamento tiene dos idiomas principales"], a:"Tres: hebreo, arameo y griego", opts:["Tres: hebreo, arameo y griego","Solo dos: hebreo y griego","Cuatro incluyendo el latín antiguo","Solo el hebreo bíblico antiguo"] },
+  { id:314, cat:"Tesoro", q:"💎 TESORO: ¿Qué pasó ANTES de que Abraham ofreciera a Isaac según Génesis 22?", hints:["Dios habló a Abraham de noche","Abraham se levantó temprano al día siguiente","Partió con Isaac y dos siervos hacia el lugar"], a:"Dios le habló y Abraham se levantó temprano para ir al lugar", opts:["Dios le habló y Abraham se levantó temprano para ir al lugar","Sara rogó a Dios que cambiara la orden divina","Abraham ayunó tres días antes de partir","Un ángel se le apareció de día con la orden"] },
+  { id:315, cat:"Tesoro", q:"💎 TESORO: ¿Cuál es la curiosidad del versículo Juan 11:35 en la Biblia?", hints:["Es el versículo más corto de toda la Biblia","Solo tiene dos palabras en español","Habla de la reacción de Jesús ante el sepulcro de Lázaro"], a:"Es el versículo más corto: Jesús lloró", opts:["Es el versículo más corto: Jesús lloró","Es el único versículo donde Jesús ríe","Es donde Jesús pronuncia el discurso más corto","Es el único versículo con solo el nombre de Jesús"] },
+  { id:316, cat:"Tesoro", q:"💎 TESORO: ¿Qué profeta del Antiguo Testamento predijo con exactitud el nombre del rey Ciro 150 años antes de que naciera?", hints:["Lo llamó por su nombre en la profecía","La profecía está en el libro más largo del AT","Este profeta tiene 66 capítulos en su libro"], a:"Isaías (Isaías 44:28 y 45:1)", opts:["Isaías (Isaías 44:28 y 45:1)","Jeremías en las cartas a los exiliados","Daniel en la interpretación del sueño","Ezequiel en la visión del templo nuevo"] },
+  { id:317, cat:"Tesoro", q:"💎 TESORO: ¿Qué ocurrió DESPUÉS de que los magos adoraron a Jesús según Mateo 2?", hints:["Dios les advirtió en sueños","No volvieron a ver a Herodes","Tomaron otro camino al regresar a su tierra"], a:"Dios los avisó en sueños y volvieron por otro camino", opts:["Dios los avisó en sueños y volvieron por otro camino","Herodes los invitó a un banquete de regreso","Se quedaron en Belén para proteger al niño","Un ángel los acompañó hasta su país de origen"] },
+  { id:318, cat:"Tesoro", q:"💎 TESORO: ¿Cuántos años después de la muerte de David construyó Salomón el templo según 1 Reyes 6?", hints:["David murió cuando Salomón comenzó a reinar","Salomón comenzó a construir el templo en su cuarto año","David murió aproximadamente en el año 970 a.C."], a:"Aproximadamente 4 años después de la muerte de David", opts:["Aproximadamente 4 años después de la muerte de David","En el mismo año que David murió","20 años después del reinado de David","David vivió para ver comenzar el templo"] },
+  { id:319, cat:"Tesoro", q:"💎 TESORO: ¿Qué curiosa conexión existe entre Génesis 1:1 y Juan 1:1?", hints:["Ambos son el primer versículo de su libro","Ambos comienzan con la misma frase","Génesis dice: en el principio y Juan también"], a:"Ambos comienzan con: En el principio", opts:["Ambos comienzan con: En el principio","Ambos tienen exactamente el mismo número de palabras","Ambos hablan del mismo evento de la creación","Ambos fueron escritos originalmente en hebreo"] },
+  { id:320, cat:"Tesoro", q:"💎 TESORO: ¿Cuál fue la primera ciudad que conquistó Josué en Canaán y por qué fue significativa según Josué 6?", hints:["Era una ciudad fuertemente amurallada","Su conquista fue milagrosa sin armas convencionales","Era la llave de entrada a toda la tierra prometida"], a:"Jericó: porque su caída milagrosa abrió la puerta a toda Canaán", opts:["Jericó: porque su caída milagrosa abrió la puerta a toda Canaán","Hai: porque fue la primera batalla con ejército regular","Gabaón: porque sus habitantes hicieron paz voluntariamente","Hebrón: porque allí estaban los gigantes que debían vencer"] },
 ];
 
 // ═══════════════════════════════════════════════════════════════
@@ -399,6 +422,7 @@ const DB = [
 const POINTS    = { direct:5, h1:3, h2:2, h3:1, wrong:-5 };
 const STEPS     = { correct:1, wrong:-2, challengeCorrect:2, challengeWrong:-2 };
 const CHALLENGE = { correct:10, wrong:-8 };
+const TESORO    = { correct:25, wrong:-10, steps:2, stepsWrong:-3 };
 const BUZZ_LOCK = 3; // segundos bloqueados al inicio
 const TOTAL     = 66;
 const TIMER_SEC = 15;
@@ -572,7 +596,27 @@ function useAudio() {
     if(secs<=5) tone(900,0.04,0.2,"square");
   }, [tone]);
 
-  return { startTickTock, stopTickTock, playChallengeSquare, playAvatarSelect, playConfirm, playCorrect, playWrong, playBuzz, playVictory, playNearEnd, playTimerTick };
+  const playTesoro = useCallback(() => {
+    // Sonido mágico y brillante: arpegio ascendente con campanas
+    try {
+      const c=getCtx();
+      [[523,0],[659,0.1],[784,0.2],[1047,0.3],[1319,0.4],[1568,0.5],[2093,0.65]].forEach(([freq,delay])=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type="sine";o.frequency.value=freq as number;
+        g.gain.setValueAtTime(0,c.currentTime+(delay as number));
+        g.gain.linearRampToValueAtTime(0.3,c.currentTime+(delay as number)+0.02);
+        g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+(delay as number)+0.6);
+        o.start(c.currentTime+(delay as number));
+        o.stop(c.currentTime+(delay as number)+0.65);
+      });
+      // Shimmer final
+      setTimeout(()=>tone(2093,0.8,0.15,"sine",0),900);
+      setTimeout(()=>tone(2637,0.6,0.12,"sine",0),1050);
+    } catch(e){}
+  }, [getCtx, tone]);
+
+  return { startTickTock, stopTickTock, playChallengeSquare, playAvatarSelect, playConfirm, playCorrect, playWrong, playBuzz, playVictory, playNearEnd, playTimerTick, playTesoro };
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -585,6 +629,10 @@ const FONTS = `
 @keyframes glowP{0%,100%{filter:drop-shadow(0 2px 8px rgba(200,146,14,.2))}50%{filter:drop-shadow(0 2px 28px rgba(200,146,14,.65))}}
 @keyframes btnGlow{0%,100%{box-shadow:0 0 18px rgba(200,146,14,.2)}50%{box-shadow:0 0 44px rgba(200,146,14,.5)}}
 @keyframes chalFlash{0%,100%{background:#17120a}50%{background:#2a0800}}
+@keyframes tesoroFlash{0%{background:#17120a;box-shadow:none}25%{background:#1a1400;box-shadow:inset 0 0 80px rgba(255,215,0,.3)}50%{background:#221a00;box-shadow:inset 0 0 120px rgba(255,215,0,.5)}75%{background:#1a1400;box-shadow:inset 0 0 80px rgba(255,215,0,.3)}100%{background:#17120a;box-shadow:none}}
+@keyframes tesoroGlow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+@keyframes winFlash{0%{opacity:0}10%{opacity:1;background:rgba(255,255,255,.95)}30%{opacity:.7;background:rgba(255,255,255,.6)}50%{opacity:.4;background:rgba(255,255,255,.3)}70%{opacity:.6;background:rgba(255,255,255,.5)}85%{opacity:.2;background:rgba(255,255,255,.15)}100%{opacity:0}}
+@keyframes goldParticle{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-120px) rotate(720deg);opacity:0}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes nearPulse{from{opacity:1;transform:translateX(-50%) scale(1)}to{opacity:.3;transform:translateX(-50%) scale(1.6)}}
@@ -995,23 +1043,33 @@ function NarrativeScreen({ onDone }: { onDone:()=>void }) {
 // ═══════════════════════════════════════════════════════════════
 function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, total, audio, myName, isHost }: any) {
   const isChallenge=question.cat==="Desafío";
+  const isTesoro=question.cat==="Tesoro";
   const catInfo=CATS[question.cat as keyof typeof CATS]||CATS.Eventos;
-  const pts=isChallenge?CHALLENGE.correct:ptsFor(hr);
+  const pts=isTesoro?TESORO.correct:isChallenge?CHALLENGE.correct:ptsFor(hr);
+  const lockTime=isTesoro?4:BUZZ_LOCK; // 4 segundos para Tesoro
   const [timer,setTimer]=useState(TIMER_SEC);
   const [buzzLock,setBuzzLock]=useState(true);
-  const [lockCount,setLockCount]=useState(BUZZ_LOCK);
+  const [lockCount,setLockCount]=useState(lockTime);
+  const [tesoroRevealed,setTesoroRevealed]=useState(false);
   const timerRef=useRef<any>(null);
   const lockRef=useRef<any>(null);
   const isSolo=players.length===1;
 
   useEffect(()=>{
     setTimer(TIMER_SEC);
-    setBuzzLock(!isSolo); // solo bloqueamos en multijugador
-    setLockCount(BUZZ_LOCK);
+    setTesoroRevealed(false);
+    setBuzzLock(!isSolo);
+    setLockCount(lockTime);
+    if(isTesoro) { try { audio.playTesoro(); } catch(e){} }
     if(!isSolo){
       lockRef.current=setInterval(()=>{
         setLockCount(c=>{
-          if(c<=1){clearInterval(lockRef.current);setBuzzLock(false);return 0;}
+          if(c<=1){
+            clearInterval(lockRef.current);
+            setBuzzLock(false);
+            if(isTesoro) setTesoroRevealed(true);
+            return 0;
+          }
           return c-1;
         });
       },1000);
@@ -1031,7 +1089,11 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
   const myUsed=buzzed.includes(myPlayer?.name);
 
   return (
-    <div style={{...S.wrap,paddingTop:0,animation:isChallenge?"chalFlash 0.9s infinite":"none"}}>
+    <div style={{...S.wrap,paddingTop:0,animation:isTesoro?"tesoroFlash 2s ease-in-out infinite":isChallenge?"chalFlash 0.9s infinite":"none",position:"relative"}}>
+      {/* Tesoro shimmer particles */}
+      {isTesoro&&[...Array(12)].map((_,i)=>(
+        <div key={i} style={{position:"fixed",left:`${8+i*7.5}%`,bottom:`${20+Math.random()*30}%`,width:4+Math.random()*4,height:4+Math.random()*4,borderRadius:"50%",background:"#FFD700",opacity:.7,animation:`goldParticle ${1.5+Math.random()*2}s ${Math.random()*2}s ease-out infinite`,pointerEvents:"none",zIndex:0}}/>
+      ))}
       <style>{FONTS}</style>
       {/* Progreso */}
       <div style={{width:"100%",maxWidth:440,height:3,background:"rgba(255,255,255,.08)",borderRadius:999,overflow:"hidden",marginBottom:10}}>
@@ -1070,11 +1132,11 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
 
       {/* BUZZ LOCK */}
       {buzzLock&&!isSolo&&(
-        <div style={{width:"100%",maxWidth:440,background:"rgba(255,68,68,.07)",border:"1px solid rgba(255,68,68,.25)",borderRadius:12,padding:"10px 14px",textAlign:"center",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
-          <div style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,68,68,.15)",border:"2px solid #FF6666",display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold",color:"#FF6666",fontSize:16,fontFamily:"'Cinzel',Georgia,serif",flexShrink:0}}>{lockCount}</div>
+        <div style={{width:"100%",maxWidth:440,background:isTesoro?"rgba(255,215,0,.08)":"rgba(255,68,68,.07)",border:`1px solid ${isTesoro?"rgba(255,215,0,.4)":"rgba(255,68,68,.25)"}`,borderRadius:12,padding:"12px 14px",textAlign:"center",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+          <div style={{width:36,height:36,borderRadius:"50%",background:isTesoro?"rgba(255,215,0,.15)":"rgba(255,68,68,.15)",border:`2px solid ${isTesoro?"#FFD700":"#FF6666"}`,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:"bold",color:isTesoro?"#FFD700":"#FF6666",fontSize:18,fontFamily:"'Cinzel',Georgia,serif",flexShrink:0,animation:isTesoro?"tesoroGlow 1s ease-in-out infinite":"none"}}>{lockCount}</div>
           <div>
-            <div style={{color:"#FF8888",fontSize:12,letterSpacing:1,fontFamily:"'Cinzel',Georgia,serif"}}>🔒 LEÉD LA PREGUNTA</div>
-            <div style={{fontSize:10,color:"#555",marginTop:2}}>Los botones se habilitan en {lockCount}s</div>
+            <div style={{color:isTesoro?"#FFD700":"#FF8888",fontSize:13,letterSpacing:2,fontFamily:"'Cinzel',Georgia,serif"}}>{isTesoro?"💎 ¡TESORO! LEÉD BIEN":"🔒 LEÉD LA PREGUNTA"}</div>
+            <div style={{fontSize:10,color:isTesoro?"#c8a030":"#555",marginTop:2}}>{isTesoro?`+${TESORO.correct}pts +${TESORO.steps} casillas si acertás`:""} Los botones se habilitan en {lockCount}s</div>
           </div>
         </div>
       )}
@@ -1176,7 +1238,7 @@ function AnswerScreen({ question, player, playerObj, hr, onAnswer }: any) {
 // ═══════════════════════════════════════════════════════════════
 //  RESULT SCREEN
 // ═══════════════════════════════════════════════════════════════
-function ResultScreen({ correct, player, playerObj, pts, ptsLabel, correctAnswer, newPos, onNext, isChallenge, isHost }: any) {
+function ResultScreen({ correct, player, playerObj, pts, ptsLabel, correctAnswer, newPos, onNext, isChallenge, isTesoro, isHost }: any) {
   return (
     <div style={{...S.wrap,justifyContent:"center"}}>
       <style>{FONTS}</style>
@@ -1187,7 +1249,8 @@ function ResultScreen({ correct, player, playerObj, pts, ptsLabel, correctAnswer
         <span style={{color:playerObj.color,fontWeight:"bold",fontSize:15,fontFamily:"'Cinzel',Georgia,serif"}}>{player}</span>
         <span style={{color:"#ddd",fontSize:13}}>{correct?`+${ptsLabel} 🔥`:`${ptsLabel}`}</span>
       </div>
-      {isChallenge&&<div style={{fontSize:11,color:correct?"#FF8844":"#888",marginBottom:6}}>{correct?"⚡ ¡Desafío superado!":"⚡ Desafío fallido"}</div>}
+      {isTesoro&&<div style={{fontSize:12,color:correct?"#FFD700":"#888",marginBottom:6,fontFamily:"'Cinzel',Georgia,serif",letterSpacing:1}}>{correct?"💎 ¡TESORO CONQUISTADO! +25pts +2 casillas":"💎 Tesoro perdido..."}</div>}
+      {!isTesoro&&isChallenge&&<div style={{fontSize:11,color:correct?"#FF8844":"#888",marginBottom:6}}>{correct?"⚡ ¡Desafío superado!":"⚡ Desafío fallido"}</div>}
       {!correct&&<p style={{fontSize:13,color:"#aaa",marginBottom:12}}>Respuesta: <b style={{color:"#d4b060"}}>{correctAnswer}</b></p>}
       <p style={{fontSize:13,color:"#c8a850",marginBottom:8}}>{correct?`📍 Avanza → Casilla ${newPos}`:`📍 Retrocede → Casilla ${newPos}`}</p>
       {newPos>=61&&<div style={{background:"rgba(255,215,0,.09)",border:"1px solid rgba(255,215,0,.3)",borderRadius:10,padding:"8px 16px",marginBottom:12,textAlign:"center"}}>
@@ -1203,25 +1266,57 @@ function ResultScreen({ correct, player, playerObj, pts, ptsLabel, correctAnswer
 // ═══════════════════════════════════════════════════════════════
 function WinScreen({ winner, players, onRestart }: any) {
   const sorted=[...players].sort((a:any,b:any)=>b.score-a.score);
+  const [flash,setFlash]=useState(true);
+
+  useEffect(()=>{
+    // Flash effect — multiple pulses
+    const t=setTimeout(()=>setFlash(false),2200);
+    return ()=>clearTimeout(t);
+  },[]);
+
   return (
-    <div style={{...S.wrap,justifyContent:"center",textAlign:"center"}}>
+    <div style={{...S.wrap,justifyContent:"center",textAlign:"center",position:"relative",overflow:"hidden"}}>
       <style>{FONTS}</style>
-      <div style={{fontSize:44,marginBottom:8}}>🎆✨🎇</div>
-      <span style={{fontSize:52,animation:"popIn .5s ease"}}>{AVATARS[winner.avatar]?.emoji||"?"}</span>
-      <h1 style={{fontSize:24,fontWeight:900,color:"#d4b060",margin:"10px 0 4px",fontFamily:"'Cinzel Decorative',Georgia,serif",textShadow:"0 0 40px rgba(212,176,96,.45)",letterSpacing:2}}>¡{winner.name} GANÓ!</h1>
+
+      {/* White flash overlay */}
+      {flash&&(
+        <div style={{
+          position:"fixed",inset:0,zIndex:999,pointerEvents:"none",
+          animation:"winFlash 2.2s ease-out forwards",
+          background:"rgba(255,255,255,0)"
+        }}/>
+      )}
+
+      {/* Gold particles */}
+      {[...Array(20)].map((_,i)=>(
+        <div key={i} style={{
+          position:"fixed",
+          left:`${Math.random()*100}%`,
+          bottom:`${Math.random()*40}%`,
+          width:6+Math.random()*8,height:6+Math.random()*8,
+          borderRadius:"50%",
+          background:["#FFD700","#FFF","#c8920e","#fffbe8"][i%4],
+          animation:`goldParticle ${1.5+Math.random()*2}s ${Math.random()*1.5}s ease-out infinite`,
+          pointerEvents:"none",zIndex:1,opacity:.8
+        }}/>
+      ))}
+
+      <div style={{fontSize:44,marginBottom:8,animation:"popIn .5s ease"}}>🎆✨🎇</div>
+      <span style={{fontSize:64,animation:"popIn .5s ease",filter:"drop-shadow(0 0 20px gold)"}}>{AVATARS[winner.avatar]?.emoji||"?"}</span>
+      <h1 style={{fontSize:26,fontWeight:900,color:"#FFD700",margin:"10px 0 4px",fontFamily:"'Cinzel Decorative',Georgia,serif",textShadow:"0 0 40px rgba(255,215,0,.7)",letterSpacing:2,animation:"glowP 2s ease-in-out infinite"}}>¡{winner.name} GANÓ!</h1>
       <p style={{fontSize:12,color:"#c8a850",marginBottom:4,fontStyle:"italic",fontFamily:"'Cinzel',Georgia,serif"}}>"Has recorrido el camino de la sabiduría"</p>
       <p style={{fontSize:10,color:"#888",marginBottom:18}}>🏆 Llegó a la casilla 66</p>
-      <div style={{display:"flex",flexDirection:"column",gap:7,width:"100%",maxWidth:320,marginBottom:18}}>
+      <div style={{display:"flex",flexDirection:"column",gap:7,width:"100%",maxWidth:320,marginBottom:18,position:"relative",zIndex:2}}>
         {sorted.map((p:any,i:number)=>(
-          <div key={p.name} style={{background:"rgba(255,255,255,.04)",borderRadius:10,padding:"9px 12px",display:"flex",alignItems:"center",gap:10,borderLeft:`4px solid ${p.color}`}}>
+          <div key={p.name} style={{background:i===0?"rgba(255,215,0,.08)":"rgba(255,255,255,.04)",borderRadius:10,padding:"9px 12px",display:"flex",alignItems:"center",gap:10,borderLeft:`4px solid ${i===0?"#FFD700":p.color}`,boxShadow:i===0?"0 0 20px rgba(255,215,0,.2)":"none"}}>
             <span style={{fontSize:17,width:26}}>{["🥇","🥈","🥉"][i]||`#${i+1}`}</span>
             <span style={{fontSize:14}}>{AVATARS[p.avatar]?.emoji||"?"}</span>
-            <span style={{flex:1,fontWeight:"bold",fontSize:13,color:"#e8d8b0",fontFamily:"'Cinzel',Georgia,serif"}}>{p.name}</span>
+            <span style={{flex:1,fontWeight:"bold",fontSize:13,color:i===0?"#FFD700":"#e8d8b0",fontFamily:"'Cinzel',Georgia,serif"}}>{p.name}</span>
             <span style={{color:"#d4b060",fontWeight:"bold",fontSize:13}}>{p.score}pts</span>
           </div>
         ))}
       </div>
-      <button style={S.mainBtn} onClick={onRestart}>🔁 NUEVA PARTIDA</button>
+      <button style={{...S.mainBtn,position:"relative",zIndex:2}} onClick={onRestart}>🔁 NUEVA PARTIDA</button>
     </div>
   );
 }
@@ -1419,20 +1514,25 @@ export default function App() {
     if(!activeName) return;
     const ok=norm(opt)===norm(cQ.a);
     const isChallenge=cQ.cat==="Desafío";
-    const steps=ok?(isChallenge?STEPS.challengeCorrect:STEPS.correct):(isChallenge?STEPS.challengeWrong:STEPS.wrong);
-    const ptsChange=ok?(isChallenge?CHALLENGE.correct:ptsFor(hr)):(isChallenge?CHALLENGE.wrong:POINTS.wrong);
+    const isTesoro=cQ.cat==="Tesoro";
+    const steps=ok
+      ? (isTesoro?TESORO.steps : isChallenge?STEPS.challengeCorrect : STEPS.correct)
+      : (isTesoro?TESORO.stepsWrong : isChallenge?STEPS.challengeWrong : STEPS.wrong);
+    const ptsChange=ok
+      ? (isTesoro?TESORO.correct : isChallenge?CHALLENGE.correct : ptsFor(hr))
+      : (isTesoro?TESORO.wrong : isChallenge?CHALLENGE.wrong : POINTS.wrong);
     const ptsLabel=`${ok?"+":""}${ptsChange} pts · ${steps>0?"+"+steps:steps} casilla${Math.abs(steps)!==1?"s":""}`;
 
-    const activePlayer=players.find(p=>p.name===activeName)||players[0];
+    const activePlayer=players.find((p:any)=>p.name===activeName)||players[0];
     if(!activePlayer) return;
 
-    const newScore=Math.max(0,activePlayer.score+(ok?ptsFor(hr):POINTS.wrong));
+    const newScore=Math.max(0,activePlayer.score+ptsChange);
     const newPos=Math.min(TOTAL,Math.max(1,activePlayer.position+steps));
 
     if(ok) audio.playCorrect(); else audio.playWrong();
     audio.playNearEnd(newPos);
 
-    const resultData = { correct:ok, player:activeName, playerAvatar:activePlayer.avatar, playerColor:activePlayer.color, pts:ptsChange, ptsLabel, correctAnswer:cQ.a, newPos, isChallenge };
+    const resultData = { correct:ok, player:activeName, playerAvatar:activePlayer.avatar, playerColor:activePlayer.color, pts:ptsChange, ptsLabel, correctAnswer:cQ.a, newPos, isChallenge, isTesoro };
 
     if(isSolo){
       setSoloPlayers(prev=>prev.map(p=>p.name===activeName?{...p,score:newScore,position:newPos}:p));
@@ -1545,7 +1645,7 @@ export default function App() {
         <ResultScreen correct={result.correct} player={result.player}
           playerObj={{avatar:result.playerAvatar,color:result.playerColor,name:result.player,position:result.newPos}}
           pts={result.pts} ptsLabel={result.ptsLabel} correctAnswer={result.correctAnswer}
-          newPos={result.newPos} isChallenge={result.isChallenge}
+          newPos={result.newPos} isChallenge={result.isChallenge} isTesoro={result.isTesoro}
           onNext={nextQuestion} isHost={true}/>
       )}
       {screen==="win"&&winner&&<WinScreen winner={winner} players={players} onRestart={handleRestart}/>}
