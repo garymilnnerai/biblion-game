@@ -616,7 +616,67 @@ function useAudio() {
     } catch(e){}
   }, [getCtx, tone]);
 
-  return { startTickTock, stopTickTock, playChallengeSquare, playAvatarSelect, playConfirm, playCorrect, playWrong, playBuzz, playVictory, playNearEnd, playTimerTick, playTesoro };
+  // 🎵 Bienvenida: arpa glissando ascendente + campana
+  const playWelcome = useCallback(() => {
+    try {
+      const c=getCtx();
+      // Arpa glissando ascendente
+      [261,293,329,349,392,440,494,523,587,659,784,880,1047].forEach((n,i)=>
+        tone(n,0.35,0.18,"sine",i*0.06)
+      );
+      // Campana al final
+      setTimeout(()=>{
+        try {
+          const o=c.createOscillator(),g=c.createGain();
+          o.connect(g);g.connect(c.destination);
+          o.type="sine";o.frequency.value=1760;
+          g.gain.setValueAtTime(0,c.currentTime);
+          g.gain.linearRampToValueAtTime(0.4,c.currentTime+0.01);
+          g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+1.8);
+          o.start(c.currentTime);o.stop(c.currentTime+2);
+          // Segundo armónico
+          const o2=c.createOscillator(),g2=c.createGain();
+          o2.connect(g2);g2.connect(c.destination);
+          o2.type="sine";o2.frequency.value=2093;
+          g2.gain.setValueAtTime(0,c.currentTime);
+          g2.gain.linearRampToValueAtTime(0.2,c.currentTime+0.01);
+          g2.gain.exponentialRampToValueAtTime(0.001,c.currentTime+1.2);
+          o2.start(c.currentTime);o2.stop(c.currentTime+1.5);
+        } catch(e){}
+      },780);
+    } catch(e){}
+  }, [getCtx, tone]);
+
+  // ⏰ Timeout respuesta: arpa descendente de tensión
+  const playAnswerTimeout = useCallback(() => {
+    try {
+      [1047,880,784,659,523,440,392,329,261].forEach((n,i)=>
+        tone(n,0.3,0.25,"sine",i*0.09)
+      );
+      // Buzzer final
+      setTimeout(()=>tone(180,0.5,0.4,"sawtooth",0),820);
+    } catch(e){}
+  }, [tone]);
+
+  // 🔔 Dong ancestral para frases motivadoras
+  const playDong = useCallback(() => {
+    try {
+      const c=getCtx();
+      // Nota grave profunda tipo gong/campana tibetana
+      [[130,0,0.35,2.5],[196,0,0.2,2.0],[261,0.05,0.15,1.5]].forEach(([freq,delay,vol,dur])=>{
+        const o=c.createOscillator(),g=c.createGain();
+        o.connect(g);g.connect(c.destination);
+        o.type="sine";o.frequency.value=freq as number;
+        g.gain.setValueAtTime(0,c.currentTime+(delay as number));
+        g.gain.linearRampToValueAtTime(vol as number,c.currentTime+(delay as number)+0.015);
+        g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+(delay as number)+(dur as number));
+        o.start(c.currentTime+(delay as number));
+        o.stop(c.currentTime+(delay as number)+(dur as number)+0.1);
+      });
+    } catch(e){}
+  }, [getCtx]);
+
+  return { startTickTock, stopTickTock, playChallengeSquare, playAvatarSelect, playConfirm, playCorrect, playWrong, playBuzz, playVictory, playNearEnd, playTimerTick, playTesoro, playWelcome, playAnswerTimeout, playDong };
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -635,6 +695,7 @@ const FONTS = `
 @keyframes goldParticle{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(-120px) rotate(720deg);opacity:0}}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 @keyframes popIn{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes phraseGlow{0%{opacity:0;transform:scale(.95) translateY(10px)}35%{opacity:1;transform:scale(1.03) translateY(0)}65%{opacity:1;transform:scale(1) translateY(0)}100%{opacity:.9;transform:scale(1) translateY(0)}}
 @keyframes nearPulse{from{opacity:1;transform:translateX(-50%) scale(1)}to{opacity:.3;transform:translateX(-50%) scale(1.6)}}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes codePulse{0%,100%{opacity:1}50%{opacity:.6}}
@@ -722,9 +783,14 @@ function PlayerPopup({ player, onClose }: any) {
 // ═══════════════════════════════════════════════════════════════
 //  INTRO SCREEN
 // ═══════════════════════════════════════════════════════════════
-function IntroScreen({ onStart, onSolo }: { onStart:()=>void; onSolo:()=>void }) {
+function IntroScreen({ onStart, onSolo, audio }: { onStart:()=>void; onSolo:()=>void; audio:any }) {
   const [p,setP]=useState(0);
-  useEffect(()=>{ const t=[150,900,1700,2500].map((ms,i)=>setTimeout(()=>setP(i+1),ms)); return ()=>t.forEach(clearTimeout); },[]);
+  useEffect(()=>{
+    const t=[150,900,1700,2500].map((ms,i)=>setTimeout(()=>setP(i+1),ms));
+    // 🎵 Sonido de bienvenida cuando p llega a 1 (pantalla visible)
+    const welcome=setTimeout(()=>{ try{ audio.playWelcome(); }catch(e){} },600);
+    return ()=>{ t.forEach(clearTimeout); clearTimeout(welcome); };
+  },[]);
   const vis=(min:number)=>({opacity:p>=min?1:0,transform:p>=min?"translateY(0)":"translateY(24px)",transition:"opacity 1s ease,transform 1s cubic-bezier(.22,1,.36,1)"});
   const share=()=>{
     const url=window.location.href;
@@ -1021,18 +1087,96 @@ function RegisterScreen({ usedAvatars, usedNames, onDone, audio }: any) {
 // ═══════════════════════════════════════════════════════════════
 //  NARRATIVE SCREEN
 // ═══════════════════════════════════════════════════════════════
-function NarrativeScreen({ onDone }: { onDone:()=>void }) {
+function NarrativeScreen({ onDone, audio }: { onDone:()=>void; audio:any }) {
+  const FRASES = [
+    "El camino de la sabiduría comienza aquí.",
+    "Demuestra lo que sabes.",
+    "Solo el sabio avanza.",
+    "Piensa antes de responder.",
+    "¿Estás listo para la prueba?",
+    "Un paso más hacia la cima.",
+    "El pergamino se abre... ¡adelante!",
+    "La victoria aguarda al que sabe.",
+    "El camino es largo. El premio, épico.",
+    "El desafío ha comenzado.",
+  ];
+  const frase = useRef(FRASES[Math.floor(Math.random()*FRASES.length)]);
   const [step,setStep]=useState(0);
   const lines=["El conocimiento será puesto a prueba…","66 casillas aguardan al sabio y al valiente.","Que comience el camino de la sabiduría."];
-  useEffect(()=>{ const t=setTimeout(()=>{ if(step<lines.length-1) setStep(s=>s+1); else setTimeout(onDone,1000); },1300); return ()=>clearTimeout(t); },[step]);
+
+  useEffect(()=>{
+    // 🔔 Dong ancestral al abrir la pantalla
+    try { audio.playDong(); } catch(e){}
+  },[]);
+
+  useEffect(()=>{
+    const t=setTimeout(()=>{
+      if(step<lines.length-1) setStep(s=>s+1);
+      else setTimeout(onDone,1000);
+    },1400);
+    return ()=>clearTimeout(t);
+  },[step]);
+
   return (
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#0d0700",fontFamily:"'Cinzel',Georgia,serif"}}>
       <style>{FONTS}</style>
-      <div style={{textAlign:"center",padding:24}}>
+      <div style={{textAlign:"center",padding:24,maxWidth:500}}>
+
+        {/* Frase motivadora — aparece con efecto phraseGlow */}
+        <div style={{
+          marginBottom:32,padding:"18px 24px",
+          border:"1px solid rgba(200,146,14,.3)",borderRadius:14,
+          background:"rgba(200,146,14,.05)",
+          animation:"phraseGlow 1.4s ease forwards"
+        }}>
+          <p style={{
+            fontSize:20,fontWeight:"bold",color:"#c8920e",margin:0,
+            fontFamily:"'Cinzel Decorative',Georgia,serif",
+            letterSpacing:2,lineHeight:1.4,
+            textShadow:"0 0 24px rgba(200,146,14,.35)"
+          }}>❝ {frase.current} ❞</p>
+        </div>
+
+        {/* Línea separadora */}
+        <div style={{height:1,background:"linear-gradient(90deg,transparent,rgba(200,146,14,.35),transparent)",marginBottom:24}}/>
+
+        {/* Líneas narrativas */}
         {lines.map((l,i)=>(
-          <p key={i} style={{fontSize:i===step?18:14,color:i===step?"#c8a850":i<step?"rgba(200,168,80,.4)":"rgba(200,168,80,.1)",margin:"10px 0",letterSpacing:2,transition:"all .8s ease",fontStyle:"italic"}}>{l}</p>
+          <p key={i} style={{
+            fontSize:i===step?16:13,
+            color:i===step?"#c8a850":i<step?"rgba(200,168,80,.35)":"rgba(200,168,80,.07)",
+            margin:"10px 0",letterSpacing:2,
+            transition:"all .9s ease",fontStyle:"italic"
+          }}>{l}</p>
         ))}
-        <div style={{marginTop:32,height:2,background:"linear-gradient(90deg,transparent,rgba(200,146,14,.5),transparent)",width:`${((step+1)/lines.length)*100}%`,transition:"width 1.2s ease",margin:"32px auto 0"}}/>
+
+        {/* Barra de progreso */}
+        <div style={{
+          marginTop:24,height:2,
+          background:"linear-gradient(90deg,transparent,rgba(200,146,14,.55),transparent)",
+          width:`${((step+1)/lines.length)*100}%`,
+          transition:"width 1.3s ease",margin:"24px auto 0"
+        }}/>
+      </div>
+    </div>
+  );
+}
+  return (
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",background:"#0d0700",fontFamily:"'Cinzel',Georgia,serif"}}>
+      <style>{FONTS}</style>
+      <div style={{textAlign:"center",padding:24,maxWidth:480}}>
+        {lines.map((l,i)=>(
+          <p key={i} style={{
+            fontSize:i===step?(i===1?22:18):14,
+            color:i===step?(i===1?"#FFD700":"#c8a850"):i<step?"rgba(200,168,80,.4)":"rgba(200,168,80,.08)",
+            margin:"12px 0",letterSpacing:i===1?3:2,
+            transition:"all .9s ease",
+            fontStyle:i===1?"normal":"italic",
+            fontWeight:i===1&&i===step?"bold":"normal",
+            textShadow:i===1&&i===step?"0 0 30px rgba(255,215,0,.4)":"none"
+          }}>{l}</p>
+        ))}
+        <div style={{marginTop:32,height:2,background:"linear-gradient(90deg,transparent,rgba(200,146,14,.5),transparent)",width:`${((step+1)/lines.length)*100}%`,transition:"width 1.3s ease",margin:"32px auto 0",maxWidth:300}}/>
       </div>
     </div>
   );
@@ -1113,7 +1257,7 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
       {/* Pregunta */}
       <div style={{background:isChallenge?"rgba(255,68,68,0.08)":"rgba(200,160,80,.06)",border:`1px solid ${isChallenge?"rgba(255,68,68,0.3)":"rgba(200,160,80,.18)"}`,borderRadius:14,padding:"16px",marginBottom:12,width:"100%",maxWidth:440}}>
         {isChallenge&&<div style={{fontSize:11,color:"#FF6666",letterSpacing:2,marginBottom:8,fontWeight:"bold"}}>⚡ ¡DESAFÍO! +{CHALLENGE.correct}pts +{STEPS.challengeCorrect} cas. · Error: {CHALLENGE.wrong}pts {STEPS.challengeWrong} cas.</div>}
-        <p style={{fontSize:18,fontWeight:"bold",color:"#e8d8b0",lineHeight:1.4,margin:"0 0 10px",fontFamily:"'Cinzel',Georgia,serif"}}>{question.q.replace("⚡ DESAFÍO: ","")}</p>
+        <p style={{fontSize:18,fontWeight:"bold",color:isTesoro?"#ffe580":"#e8d8b0",lineHeight:1.4,margin:"0 0 10px",fontFamily:"'Cinzel',Georgia,serif"}}>{question.q.replace("⚡ DESAFÍO: ","").replace("💎 TESORO: ","")}</p>
         {hr>0&&<div style={{display:"flex",flexDirection:"column",gap:5,marginBottom:8}}>
           {question.hints.slice(0,hr).map((h:string,i:number)=>(
             <div key={i} style={{background:"rgba(200,160,50,.08)",border:"1px solid rgba(200,160,50,.18)",borderRadius:8,padding:"6px 10px"}}>
@@ -1195,25 +1339,79 @@ function QuestionScreen({ question, players, hr, onHint, onBuzz, buzzed, qIdx, t
 // ═══════════════════════════════════════════════════════════════
 //  ANSWER SCREEN
 // ═══════════════════════════════════════════════════════════════
-function AnswerScreen({ question, player, playerObj, hr, onAnswer }: any) {
+function AnswerScreen({ question, player, playerObj, hr, onAnswer, audio }: any) {
   const [typed,setTyped]=useState("");
   const [mode,setMode]=useState("opts");
+  const [answerTimer,setAnswerTimer]=useState(10);
+  const [timedOut,setTimedOut]=useState(false);
+  const timerRef=useRef<any>(null);
   const isChallenge=question.cat==="Desafío";
-  const pts=isChallenge?CHALLENGE.correct:ptsFor(hr);
-  // Usar las opciones coherentes del campo opts si existen, sino generar aleatoriamente
-  const opts = question.opts 
+  const isTesoro=question.cat==="Tesoro";
+  const pts=isTesoro?TESORO.correct:isChallenge?CHALLENGE.correct:ptsFor(hr);
+  const opts = question.opts
     ? shuffle(question.opts)
     : shuffle([question.a, ...shuffle(DB.filter((q:any)=>q.cat===question.cat&&norm(q.a)!==norm(question.a)).map((q:any)=>q.a)).slice(0,3)]);
+
+  useEffect(()=>{
+    setAnswerTimer(10);
+    setTimedOut(false);
+    timerRef.current=setInterval(()=>{
+      setAnswerTimer(t=>{
+        if(t<=1){
+          clearInterval(timerRef.current);
+          setTimedOut(true);
+          try{ audio.playAnswerTimeout(); }catch(e){}
+          // Penalidad por no responder a tiempo
+          setTimeout(()=>onAnswer("__timeout__"),1200);
+          return 0;
+        }
+        if(t<=4) try{ audio.playTimerTick(t); }catch(e){}
+        return t-1;
+      });
+    },1000);
+    return ()=>clearInterval(timerRef.current);
+  },[]);
   return (
-    <div style={{...S.wrap,paddingTop:16,background:isChallenge?"#1a0800":"#17120a"}}>
+    <div style={{...S.wrap,paddingTop:16,background:isTesoro?"#0f0e00":isChallenge?"#1a0800":"#17120a"}}>
       <style>{FONTS}</style>
-      {isChallenge&&<div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#FF4444,#FF8800,#FF4444)",backgroundSize:"200%",animation:"goldShim 1s linear infinite"}}/>}
-      <div style={{borderRadius:999,padding:"9px 22px",fontWeight:"bold",fontSize:15,marginBottom:6,color:"#fff",background:playerObj.color,display:"flex",alignItems:"center",gap:8}}>
-        <span style={{fontSize:20}}>{AVATARS[playerObj.avatar]?.emoji||"?"}</span>
-        <span style={{fontFamily:"'Cinzel',Georgia,serif"}}>{player} — ¡Respondé!</span>
+      {isTesoro&&<div style={{position:"absolute",top:0,left:0,right:0,height:4,background:"linear-gradient(90deg,#7a6000,#FFD700,#c8920e,#FFD700,#7a6000)",backgroundSize:"200%",animation:"goldShim 1.5s linear infinite"}}/>}
+      {isChallenge&&!isTesoro&&<div style={{position:"absolute",top:0,left:0,right:0,height:3,background:"linear-gradient(90deg,#FF4444,#FF8800,#FF4444)",backgroundSize:"200%",animation:"goldShim 1s linear infinite"}}/>}
+
+      {/* Timer de respuesta */}
+      <div style={{width:"100%",maxWidth:440,marginBottom:10}}>
+        <div style={{width:"100%",height:8,background:"rgba(255,255,255,.06)",borderRadius:999,overflow:"hidden",position:"relative"}}>
+          <div style={{
+            height:"100%",borderRadius:999,
+            background:answerTimer>6?"#6BAD74":answerTimer>3?"#D4B95A":"#D4695A",
+            width:`${(answerTimer/10)*100}%`,
+            transition:"width 1s linear,background .5s"
+          }}/>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",marginTop:3}}>
+          <span style={{fontSize:9,color:"#555",letterSpacing:1}}>TIEMPO PARA RESPONDER</span>
+          <span style={{fontSize:11,color:answerTimer<=3?"#D4695A":"#888",fontWeight:"bold"}}>{timedOut?"⏰ ¡TIEMPO!":answerTimer+"s"}</span>
+        </div>
       </div>
-      <div style={{fontSize:11,color:isChallenge?"#FF8888":"#888",marginBottom:12}}>{isChallenge?`⚡ +${CHALLENGE.correct} casillas si acertás`:`✅ Acierto +${pts}pts · ❌ Error ${POINTS.wrong}pts`}</div>
-      <p style={{fontSize:17,fontWeight:"bold",textAlign:"center",marginBottom:12,maxWidth:440,lineHeight:1.5,color:"#e8d8b0",fontFamily:"'Cinzel',Georgia,serif"}}>{question.q.replace("⚡ DESAFÍO: ","")}</p>
+
+      {/* Overlay de timeout */}
+      {timedOut&&(
+        <div style={{position:"fixed",inset:0,zIndex:50,background:"rgba(0,0,0,.7)",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:12}}>
+          <div style={{fontSize:56,animation:"popIn .3s ease"}}>⏰</div>
+          <p style={{color:"#D4695A",fontFamily:"'Cinzel Decorative',Georgia,serif",fontSize:20,letterSpacing:3}}>¡TIEMPO!</p>
+          <p style={{color:"#888",fontSize:12}}>{POINTS.wrong}pts {STEPS.wrong} casillas por no responder</p>
+        </div>
+      )}
+
+      <div style={{borderRadius:999,padding:"9px 22px",fontWeight:"bold",fontSize:15,marginBottom:6,color:isTesoro?"#1a1200":"#fff",background:isTesoro?"#FFD700":playerObj.color,display:"flex",alignItems:"center",gap:8}}>
+        <span style={{fontSize:20}}>{AVATARS[playerObj.avatar]?.emoji||"?"}</span>
+        <span style={{fontFamily:"'Cinzel',Georgia,serif"}}>{player} — {isTesoro?"💎 ¡TESORO!":"¡Respondé!"}</span>
+      </div>
+      <div style={{fontSize:11,color:isTesoro?"#FFD700":isChallenge?"#FF8888":"#888",marginBottom:12}}>
+        {isTesoro?`💎 +${TESORO.correct}pts +${TESORO.steps} casillas · Error: ${TESORO.wrong}pts ${TESORO.stepsWrong} casillas`:
+         isChallenge?`⚡ +${CHALLENGE.correct}pts si acertás · Error: ${CHALLENGE.wrong}pts`:
+         `✅ Acierto +${pts}pts · ❌ Error ${POINTS.wrong}pts`}
+      </div>
+      <p style={{fontSize:17,fontWeight:"bold",textAlign:"center",marginBottom:12,maxWidth:440,lineHeight:1.5,color:isTesoro?"#ffe580":"#e8d8b0",fontFamily:"'Cinzel',Georgia,serif"}}>{question.q.replace("⚡ DESAFÍO: ","").replace("💎 TESORO: ","")}</p>
       {hr>0&&<div style={{background:"rgba(210,175,55,.07)",border:"1px solid rgba(210,175,55,.18)",borderRadius:10,padding:"9px 12px",marginBottom:12,width:"100%",maxWidth:440}}>
         {question.hints.slice(0,hr).map((h:string,i:number)=><div key={i} style={{fontSize:12,color:"#c8a850",marginBottom:4}}>💡 {h}</div>)}
       </div>}
@@ -1512,7 +1710,9 @@ export default function App() {
     if(!cQ) return;
     const activeName = isSolo ? myName : buzzer;
     if(!activeName) return;
-    const ok=norm(opt)===norm(cQ.a);
+    // Timeout counts as wrong answer
+    const isTimeout = opt === "__timeout__";
+    const ok = !isTimeout && norm(opt)===norm(cQ.a);
     const isChallenge=cQ.cat==="Desafío";
     const isTesoro=cQ.cat==="Tesoro";
     const steps=ok
@@ -1619,11 +1819,11 @@ export default function App() {
 
       {popupPlayer&&<PlayerPopup player={popupPlayer} onClose={()=>setPopupPlayer(null)}/>}
 
-      {screen==="intro"&&<IntroScreen onStart={()=>setScreen("lobby")} onSolo={()=>{setIsSoloMode(true);setIsHost(false);setScreen("register");}}/>}
+      {screen==="intro"&&<IntroScreen onStart={()=>setScreen("lobby")} onSolo={()=>{setIsSoloMode(true);setIsHost(false);setScreen("register");}} audio={audio}/>}
       {screen==="lobby"&&<LobbyScreen onHost={handleHost} onJoin={handleJoin} onBack={()=>setScreen("intro")}/>}
       {screen==="register"&&<RegisterScreen usedAvatars={usedAvatars} usedNames={usedNames} onDone={handleRegister} audio={audio}/>}
       {screen==="waiting"&&<WaitingRoom roomCode={roomCode} players={players} pending={pending} isHost={isHost} myName={myName} onStart={handleStart} onLeave={handleRestart} onAdmit={handleAdmit}/>}
-      {screen==="narrative"&&<NarrativeScreen onDone={handleNarrativeDone}/>}
+      {screen==="narrative"&&<NarrativeScreen onDone={handleNarrativeDone} audio={audio}/>}
       {screen==="game"&&cQ&&!showBoard&&(
         <QuestionScreen question={cQ} players={players} hr={hr} onHint={addHint}
           onBuzz={handleBuzz} buzzed={buzzed} qIdx={qIdx} total={questions.length}
@@ -1631,8 +1831,8 @@ export default function App() {
       )}
       {screen==="answer"&&cQ&&!showBoard&&(isSolo||(buzzer&&myName===buzzer))&&(
         <AnswerScreen question={cQ} player={isSolo?myName:buzzer}
-          playerObj={isSolo?players[0]:(buzzer?players.find(p=>p.name===buzzer)||{avatar:0,color:"#888"}:{avatar:0,color:"#888"})}
-          hr={hr} onAnswer={handleAnswer}/>
+          playerObj={isSolo?players[0]:(buzzer?players.find((p:any)=>p.name===buzzer)||{avatar:0,color:"#888"}:{avatar:0,color:"#888"})}
+          hr={hr} onAnswer={handleAnswer} audio={audio}/>
       )}
       {screen==="answer"&&cQ&&!showBoard&&!isSolo&&buzzer&&myName!==buzzer&&(
         <div style={{...S.wrap,justifyContent:"center",textAlign:"center"}}>
