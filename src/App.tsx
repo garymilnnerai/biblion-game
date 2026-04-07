@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set, get, onValue, update, off } from "firebase/database";
 
@@ -1328,9 +1328,11 @@ function AnswerScreen({ question, player, playerObj, hr, onAnswer, audio }: any)
   const isChallenge=question.cat==="Desafío";
   const isTesoro=question.cat==="Tesoro";
   const pts=isTesoro?TESORO.correct:isChallenge?CHALLENGE.correct:ptsFor(hr);
-  const opts = question.opts
-    ? shuffle(question.opts)
-    : shuffle([question.a, ...shuffle(DB.filter((q:any)=>q.cat===question.cat&&norm(q.a)!==norm(question.a)).map((q:any)=>q.a)).slice(0,3)]);
+  const opts = useMemo(()=>
+    question.opts
+      ? shuffle(question.opts)
+      : shuffle([question.a, ...shuffle(DB.filter((q:any)=>q.cat===question.cat&&norm(q.a)!==norm(question.a)).map((q:any)=>q.a)).slice(0,3)])
+  , [question.id]);
 
   useEffect(()=>{
     setAnswerTimer(10);
